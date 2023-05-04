@@ -1,0 +1,3 @@
+[submodule "FRI-Client-SDK_Cpp"]
+	path = FRI-Client-SDK_Cpp
+	url = git@github.com:cmower/FRI-Client-SDK_Cpp.git
