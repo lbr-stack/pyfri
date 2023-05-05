@@ -229,27 +229,21 @@ PYBIND11_MODULE(pyFRIClient, m) {
 
   py::class_<KUKA::FRI::LBRCommand>(m, "LBRCommand")
       .def(py::init<>())
-      // .def("setJointPosition", &KUKA::FRI::LBRCommand::setJointPosition)
       .def("setJointPosition",
            [](KUKA::FRI::LBRCommand &self, py::array_t<double> values) {
              auto buf = values.request();
              const double *data = static_cast<double *>(buf.ptr);
              self.setJointPosition(data);
            })
-      .def("setWrench", &KUKA::FRI::LBRCommand::setWrench)
+      // .def("setWrench", &KUKA::FRI::LBRCommand::setWrench)   // TODO
       .def("setTorque",
            [](KUKA::FRI::LBRCommand &self, py::array_t<double> values) {
              auto buf = values.request();
              const double *data = static_cast<double *>(buf.ptr);
-
-             // for (int i = 0; i < KUKA::FRI::LBRState::NUMBER_OF_JOINTS; ++i)
-             // std::cout << "data" << i << "=" << data[i] << "\n";
-
              self.setTorque(data);
            })
-      .def("setCartesianPose", &KUKA::FRI::LBRCommand::setCartesianPose)
-      // .def("setCartesianPoseAsMatrix",
-      // &KUKA::FRI::LBRCommand::setCartesianPoseAsMatrix)  // TODO
+      // .def("setCartesianPose") // TODO
+      // .def("setCartesianPoseAsMatrix")  // TODO
       .def("setBooleanIOValue", &KUKA::FRI::LBRCommand::setBooleanIOValue)
       .def("setDigitalIOValue", &KUKA::FRI::LBRCommand::setDigitalIOValue)
       .def("setAnalogIOValue", &KUKA::FRI::LBRCommand::setAnalogIOValue);
