@@ -146,17 +146,44 @@ PYBIND11_MODULE(pyFRIClient, m) {
       .def("getTimestampSec", &KUKA::FRI::LBRState::getTimestampSec)
       .def("getTimestampNanoSec", &KUKA::FRI::LBRState::getTimestampNanoSec)
       .def("getMeasuredJointPosition",
-           &KUKA::FRI::LBRState::getMeasuredJointPosition)
-      .def("getMeasuredTorque", &KUKA::FRI::LBRState::getMeasuredTorque)
-      .def("getCommandedTorque", &KUKA::FRI::LBRState::getCommandedTorque)
-      .def("getExternalTorque", &KUKA::FRI::LBRState::getExternalTorque)
-      .def("getIpoJointPosition",
            [](const KUKA::FRI::LBRState &self) {
-             double position[KUKA::FRI::LBRState::NUMBER_OF_JOINTS];
-             memcpy(position, self.getIpoJointPosition(),
+             double data[KUKA::FRI::LBRState::NUMBER_OF_JOINTS];
+             memcpy(data, self.getMeasuredJointPosition(),
                     KUKA::FRI::LBRState::NUMBER_OF_JOINTS * sizeof(double));
              return py::array_t<double>({KUKA::FRI::LBRState::NUMBER_OF_JOINTS},
-                                        position);
+                                        data);
+           })
+      .def("getMeasuredTorque",
+           [](const KUKA::FRI::LBRState &self) {
+             double data[KUKA::FRI::LBRState::NUMBER_OF_JOINTS];
+             memcpy(data, self.getMeasuredTorque(),
+                    KUKA::FRI::LBRState::NUMBER_OF_JOINTS * sizeof(double));
+             return py::array_t<double>({KUKA::FRI::LBRState::NUMBER_OF_JOINTS},
+                                        data);
+           })
+      .def("getCommandedTorque",
+           [](const KUKA::FRI::LBRState &self) {
+             double data[KUKA::FRI::LBRState::NUMBER_OF_JOINTS];
+             memcpy(data, self.getCommandedTorque(),
+                    KUKA::FRI::LBRState::NUMBER_OF_JOINTS * sizeof(double));
+             return py::array_t<double>({KUKA::FRI::LBRState::NUMBER_OF_JOINTS},
+                                        data);
+           })
+      .def("getExternalTorque",
+           [](const KUKA::FRI::LBRState &self) {
+             double data[KUKA::FRI::LBRState::NUMBER_OF_JOINTS];
+             memcpy(data, self.getExternalTorque(),
+                    KUKA::FRI::LBRState::NUMBER_OF_JOINTS * sizeof(double));
+             return py::array_t<double>({KUKA::FRI::LBRState::NUMBER_OF_JOINTS},
+                                        data);
+           })
+      .def("getIpoJointPosition",
+           [](const KUKA::FRI::LBRState &self) {
+             double data[KUKA::FRI::LBRState::NUMBER_OF_JOINTS];
+             memcpy(data, self.getIpoJointPosition(),
+                    KUKA::FRI::LBRState::NUMBER_OF_JOINTS * sizeof(double));
+             return py::array_t<double>({KUKA::FRI::LBRState::NUMBER_OF_JOINTS},
+                                        data);
            })
       .def("getTrackingPerformance",
            &KUKA::FRI::LBRState::getTrackingPerformance)
@@ -164,7 +191,13 @@ PYBIND11_MODULE(pyFRIClient, m) {
       .def("getDigitalIOValue", &KUKA::FRI::LBRState::getDigitalIOValue)
       .def("getAnalogIOValue", &KUKA::FRI::LBRState::getAnalogIOValue)
       .def("getMeasuredCartesianPose",
-           &KUKA::FRI::LBRState::getMeasuredCartesianPose)
+           [](const KUKA::FRI::LBRState &self) {
+             double data[3][4];
+             memcpy(data, self.getMeasuredCartesianPose(),
+                    3 * 4 * sizeof(double));
+             py::array_t<double> np_array({3, 4}, &data[0][0]);
+             return np_array;
+           })
       .def("getMeasuredCartesianPoseAsMatrix",
            [](const KUKA::FRI::LBRState &self) {
              py::array_t<double> result({3, 4});
@@ -173,7 +206,13 @@ PYBIND11_MODULE(pyFRIClient, m) {
                  reinterpret_cast<double(&)[3][4]>(ptr));
              return result;
            })
-      .def("getIpoCartesianPose", &KUKA::FRI::LBRState::getIpoCartesianPose)
+      .def("getIpoCartesianPose",
+           [](const KUKA::FRI::LBRState &self) {
+             double data[3][4];
+             memcpy(data, self.getIpoCartesianPose(), 3 * 4 * sizeof(double));
+             py::array_t<double> np_array({3, 4}, &data[0][0]);
+             return np_array;
+           })
       .def("getIpoCartesianPoseAsMatrix",
            [](const KUKA::FRI::LBRState &self) {
              py::array_t<double> result({3, 4});
