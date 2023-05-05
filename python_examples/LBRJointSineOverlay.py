@@ -14,15 +14,19 @@ class LBRJointSineOverlayClient(fri.LBRClient):
         self.phi = 0.0
         self.step_width = 0.0
 
-    def onStateChange(self, old_state, new_state):
-        super().onStateChange(old_state, new_state)
+    def monitor(self):
+        pass
 
+    def onStateChange(self, old_state, new_state):
         if new_state == fri.ESessionState.MONITORING_READY:
             self.offset = 0.0
             self.phi = 0.0
-            self.step_idth = (
+            self.step_width = (
                 2 * math.pi * self.freq_hz * self.robotState().getSampleTime()
             )
+
+    def waitForCommand(self):
+        self.robotCommand().setJointPosition(self.robotState().getIpoJointPosition())
 
     def command(self):
         new_offset = self.ampl_rad * math.sin(self.phi)
@@ -33,11 +37,7 @@ class LBRJointSineOverlayClient(fri.LBRClient):
         if self.phi >= (2 * math.pi):
             self.phi -= 2 * math.pi
         joint_pos = self.robotState().getIpoJointPosition()
-
-        for i in range(fri.LBRState.NUMBER_OF_JOINTS):
-            if self.joint_mask == i:
-                joint_pos[i] += self.offset
-
+        joint_pos[self.joint_mask] += self.offset
         self.robotCommand().setJointPosition(joint_pos)
 
 
@@ -62,7 +62,7 @@ def main():
         while success:
             success = app.step()
 
-            if trafo_client.robotState().getSessionState() == fri.ESessionState.IDLE:
+            if client.robotState().getSessionState() == fri.ESessionState.IDLE:
                 break
 
     except KeyboardInterrupt:
