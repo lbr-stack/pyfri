@@ -1,5 +1,9 @@
 // Standard library
 #include <cstdio>
+#include <string>
+
+// NumPy: https://numpy.org/
+#include <numpy/arrayobject.h>
 
 // pybind: https://pybind11.readthedocs.io/en/stable/
 #include <pybind11/numpy.h>
@@ -231,6 +235,14 @@ PYBIND11_MODULE(pyFRIClient, m) {
       .def(py::init<>())
       .def("setJointPosition",
            [](KUKA::FRI::LBRCommand &self, py::array_t<double> values) {
+             if (values.ndim() != 1 ||
+                 PyArray_DIMS(values.ptr())[0] !=
+                     KUKA::FRI::LBRState::NUMBER_OF_JOINTS) {
+               throw std::runtime_error(
+                   "Input array must have shape (" +
+                   std::to_string(KUKA::FRI::LBRState::NUMBER_OF_JOINTS) +
+                   ",)!");
+             }
              auto buf = values.request();
              const double *data = static_cast<double *>(buf.ptr);
              self.setJointPosition(data);
@@ -238,6 +250,14 @@ PYBIND11_MODULE(pyFRIClient, m) {
       // .def("setWrench", &KUKA::FRI::LBRCommand::setWrench)   // TODO
       .def("setTorque",
            [](KUKA::FRI::LBRCommand &self, py::array_t<double> values) {
+             if (values.ndim() != 1 ||
+                 PyArray_DIMS(values.ptr())[0] !=
+                     KUKA::FRI::LBRState::NUMBER_OF_JOINTS) {
+               throw std::runtime_error(
+                   "Input array must have shape (" +
+                   std::to_string(KUKA::FRI::LBRState::NUMBER_OF_JOINTS) +
+                   ",)!");
+             }
              auto buf = values.request();
              const double *data = static_cast<double *>(buf.ptr);
              self.setTorque(data);
