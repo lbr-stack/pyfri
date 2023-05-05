@@ -178,7 +178,7 @@ PYBIND11_MODULE(pyFRIClient, m) {
       .def("setWrench", &KUKA::FRI::LBRCommand::setWrench)
       .def("setTorque", &KUKA::FRI::LBRCommand::setTorque)
       .def("setCartesianPose", &KUKA::FRI::LBRCommand::setCartesianPose)
-      // .def("setCartesianPoseAsMatrix", &KUKA::FRI::LBRCommand::setCartesianPoseAsMatrix)
+      // .def("setCartesianPoseAsMatrix", &KUKA::FRI::LBRCommand::setCartesianPoseAsMatrix)  // TODO
       .def("setBooleanIOValue", &KUKA::FRI::LBRCommand::setBooleanIOValue)
       .def("setDigitalIOValue", &KUKA::FRI::LBRCommand::setDigitalIOValue)
       .def("setAnalogIOValue",  &KUKA::FRI::LBRCommand::setAnalogIOValue);
