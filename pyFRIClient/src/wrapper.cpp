@@ -129,7 +129,7 @@ PYBIND11_MODULE(pyFRIClient, m) {
   py::class_<KUKA::FRI::LBRState>(m, "LBRState")
       .def(py::init<>())
       .def_property_readonly_static("NUMBER_OF_JOINTS",
-                                    [](py::object /* self */) {
+                                    [](py::object) {
                                       int num =
                                           KUKA::FRI::LBRState::NUMBER_OF_JOINTS;
                                       return num;
