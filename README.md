@@ -6,7 +6,7 @@ KUKA Fast Robot Interface Python SDK.
 
 **THIS IS NOT A KUKA PRODUCT.**
 
-@cmower is not affiliated with KUKA.
+[@cmower](https://github.com/cmower) is not affiliated with KUKA.
 
 # Install
 
