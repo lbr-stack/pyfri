@@ -1,12 +1,16 @@
+// Standard library
 #include <cstdio>
 
+// pybind: https://pybind11.readthedocs.io/en/stable/
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 
+// KUKA FRI-Client-SDK_Cpp (using version hosted at: https://github.com/cmower/FRI-Client-SDK_Cpp)
 #include "friLBRClient.h"
 #include "friUdpConnection.h"
 #include "friClientApplication.h"
 
+// Make LBRClient a Python abstract class
 class PyLBRClient : public KUKA::FRI::LBRClient {
 
   using KUKA::FRI::LBRClient::LBRClient;
@@ -31,6 +35,8 @@ public:
 
 };
 
+// Wrapper for ClientApplication (does not make sense for the user to
+// instantiate UdpConnection on the Python side).
 class PyClientApplication {
 
 public:
@@ -57,6 +63,7 @@ private:
 
 };
 
+// Python bindings
 namespace py = pybind11;
 
 PYBIND11_MODULE(pyFRIClient, m) {
