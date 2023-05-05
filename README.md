@@ -6,6 +6,8 @@ KUKA Fast Robot Interface Python SDK.
 
 **THIS IS NOT A KUKA PRODUCT.**
 
+@cmower is not affiliated with KUKA.
+
 # Install
 
 1. Clone repository: `$ git clone --recursive git@github.com:cmower/FRI-Client-SDK_Python.git` (make sure you include `--recursive`)
