@@ -34,7 +34,7 @@ class LBRJointSineOverlayClient(fri.LBRClient):
             self.phi -= 2 * math.pi
         joint_pos = self.robotState().getIpoJointPosition()
 
-        for i in range(self.robotState().NUMBER_OF_JOINTS):
+        for i in range(fri.LBRState.NUMBER_OF_JOINTS):
             if self.joint_mask == i:
                 joint_pos[i] += self.offset
 
