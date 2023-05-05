@@ -2,6 +2,8 @@ import sys
 import math
 import pyFRIClient as fri
 
+import numpy as np
+
 
 class LBRTorqueSineOverlayClient(fri.LBRClient):
     def __init__(self, joint_mask, freq_hz, torque_amplitude):
@@ -11,25 +13,29 @@ class LBRTorqueSineOverlayClient(fri.LBRClient):
         self.torque_ampl = torque_amplitude
         self.phi = 0.0
         self.step_width = 0.0
-        self.torques = [0.0] * fri.LBRState.NUMBER_OF_JOINTS
+        self.torques = np.zeros(fri.LBRState.NUMBER_OF_JOINTS)
+
+    def monitor(self):
+        pass
 
     def onStateChange(self, old_state, new_state):
-        super().onStateChange(old_state, new_state)
+        print(f"State changed from {old_state} to {new_state}")
 
         if new_state == fri.ESessionState.MONITORING_READY:
-            self.torques = [0.0] * fri.LBRState.NUMBER_OF_JOINTS
+            self.torques = np.zeros(fri.LBRState.NUMBER_OF_JOINTS)
             self.phi = 0.0
             self.step_width = (
                 2 * math.pi * self.freq_hz * self.robotState().getSampleTime()
             )
 
-    def waitForCommand():
-        super().waitForCommand()
-        if self.robotState().getClientCommandMode() == fri.EClientCommandMode.TORQUE:
-            self.robotCommand().setTorque(self.torques)
+    def waitForCommand(self):
+        self.robotCommand().setJointPosition(self.robotState().getIpoJointPosition())
 
-    def command():
-        super().command()
+        if self.robotState().getClientCommandMode() == fri.EClientCommandMode.TORQUE:
+            self.robotCommand().setTorque(np.array(self.torques))
+
+    def command(self):
+        self.robotCommand().setJointPosition(self.robotState().getIpoJointPosition())
 
         if self.robotState().getClientCommandMode() == fri.EClientCommandMode.TORQUE:
             offset = self.torque_ampl * math.sin(self.phi)
@@ -38,15 +44,13 @@ class LBRTorqueSineOverlayClient(fri.LBRClient):
             if self.phi >= 2 * math.pi:
                 self.phi -= 2 * math.pi
 
-            for i in range(fri.LBRState.NUMBER_OF_JOINTS):
-                if self.joint_mask == i:
-                    self.torques[i] = offset
+            self.torques[self.joint_mask] = offset
 
             self.robotCommand().setTorque(self.torques)
 
 
 def main():
-    joint_mask = 5
+    joint_mask = 3
     freq_hz = 0.25
     torque_amplitude = 15.0
     client = LBRTorqueSineOverlayClient(joint_mask, freq_hz, torque_amplitude)
@@ -65,7 +69,7 @@ def main():
         while success:
             success = app.step()
 
-            if trafo_client.robotState().getSessionState() == fri.ESessionState.IDLE:
+            if client.robotState().getSessionState() == fri.ESessionState.IDLE:
                 break
 
     except KeyboardInterrupt:
@@ -73,6 +77,7 @@ def main():
 
     finally:
         app.disconnect()
+        print("Goodbye")
 
     return 0
 
