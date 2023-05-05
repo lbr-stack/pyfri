@@ -1,8 +1,6 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 
-#include <iostream>
-
 #include "friLBRClient.h"
 #include "friUdpConnection.h"
 #include "friClientApplication.h"
