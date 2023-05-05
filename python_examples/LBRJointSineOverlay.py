@@ -46,14 +46,12 @@ def main():
     freq_hz = 0.25
     ampl_rad = 0.04
     filter_coeff = 0.99
-    client = LBRJointSineOverlayClient(
-        joint_mask, freq_hz, ampl_rad, filter_coeff
-    )
+    client = LBRJointSineOverlayClient(joint_mask, freq_hz, ampl_rad, filter_coeff)
 
     app = fri.ClientApplication(client)
 
     port = 30200
-    hostname = None # i.e. use default hostname
+    hostname = None  # i.e. use default hostname
     success = app.connect(port, hostname)
 
     if not success:
