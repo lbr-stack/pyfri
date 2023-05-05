@@ -1,3 +1,5 @@
+#include <cstdio>
+
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 
@@ -148,7 +150,11 @@ PYBIND11_MODULE(pyFRIClient, m) {
       .def("getMeasuredTorque", &KUKA::FRI::LBRState::getMeasuredTorque)
       .def("getCommandedTorque", &KUKA::FRI::LBRState::getCommandedTorque)
       .def("getExternalTorque", &KUKA::FRI::LBRState::getExternalTorque)
-      .def("getIpoJointPosition", &KUKA::FRI::LBRState::getIpoJointPosition)
+      .def("getIpoJointPosition", [](const KUKA::FRI::LBRState& self) {
+				    double position[KUKA::FRI::LBRState::NUMBER_OF_JOINTS];
+				    memcpy(position, self.getIpoJointPosition(), KUKA::FRI::LBRState::NUMBER_OF_JOINTS * sizeof(double));
+				    return py::array_t<double>({KUKA::FRI::LBRState::NUMBER_OF_JOINTS}, position);
+				  })
       .def("getTrackingPerformance", &KUKA::FRI::LBRState::getTrackingPerformance)
       .def("getBooleanIOValue", &KUKA::FRI::LBRState::getBooleanIOValue)
       .def("getDigitalIOValue", &KUKA::FRI::LBRState::getDigitalIOValue)
@@ -172,9 +178,22 @@ PYBIND11_MODULE(pyFRIClient, m) {
 
     py::class_<KUKA::FRI::LBRCommand>(m, "LBRCommand")
       .def(py::init<>())
-      .def("setJointPosition", &KUKA::FRI::LBRCommand::setJointPosition)
+      // .def("setJointPosition", &KUKA::FRI::LBRCommand::setJointPosition)
+      .def("setJointPosition", [] (KUKA::FRI::LBRCommand& self, py::array_t<double> values) {
+	    auto buf = values.request();
+            const double* data = static_cast<double*>(buf.ptr);
+            self.setJointPosition(data);
+        })
       .def("setWrench", &KUKA::FRI::LBRCommand::setWrench)
-      .def("setTorque", &KUKA::FRI::LBRCommand::setTorque)
+      .def("setTorque", [] (KUKA::FRI::LBRCommand& self, py::array_t<double> values) {
+	    auto buf = values.request();
+            const double* data = static_cast<double*>(buf.ptr);
+
+	    // for (int i = 0; i < KUKA::FRI::LBRState::NUMBER_OF_JOINTS; ++i)
+	      // std::cout << "data" << i << "=" << data[i] << "\n";
+
+            self.setTorque(data);
+        })
       .def("setCartesianPose", &KUKA::FRI::LBRCommand::setCartesianPose)
       // .def("setCartesianPoseAsMatrix", &KUKA::FRI::LBRCommand::setCartesianPoseAsMatrix)  // TODO
       .def("setBooleanIOValue", &KUKA::FRI::LBRCommand::setBooleanIOValue)
