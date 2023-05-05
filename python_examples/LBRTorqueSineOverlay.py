@@ -32,7 +32,7 @@ class LBRTorqueSineOverlayClient(fri.LBRClient):
         self.robotCommand().setJointPosition(self.robotState().getIpoJointPosition())
 
         if self.robotState().getClientCommandMode() == fri.EClientCommandMode.TORQUE:
-            self.robotCommand().setTorque(np.array(self.torques))
+            self.robotCommand().setTorque(self.torques)
 
     def command(self):
         self.robotCommand().setJointPosition(self.robotState().getIpoJointPosition())
