@@ -1,11 +1,15 @@
 import os
 import re
-import subprocess
 import sys
+import toml
+import subprocess
 from pathlib import Path
-
 from setuptools import Extension, setup
 from setuptools.command.build_ext import build_ext
+
+# Read the configuration settings
+config = toml.load("project.toml")
+FRI_VERSION = config.get("FRI")["FRI_VERSION"]
 
 # Convert distutils Windows platform specifiers to CMake -A arguments
 PLAT_TO_CMAKE = {
@@ -109,6 +113,9 @@ class CMakeBuild(build_ext):
             if hasattr(self, "parallel") and self.parallel:
                 # CMake 3.12+ only.
                 build_args += [f"-j{self.parallel}"]
+
+        # Set the FRI version number
+        cmake_args += [f"-DFRI_VERSION={FRI_VERSION}"]
 
         build_temp = Path(self.build_temp) / ext.name
         if not build_temp.exists():
