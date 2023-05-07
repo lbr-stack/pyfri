@@ -50,6 +50,8 @@ class LBRTorqueSineOverlayClient(fri.LBRClient):
 
 
 def main():
+    print("Running FRI Version:", fri.FRI_VERSION)
+
     joint_mask = 3
     freq_hz = 0.25
     torque_amplitude = 15.0
