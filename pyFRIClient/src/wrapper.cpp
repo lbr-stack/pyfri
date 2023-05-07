@@ -14,6 +14,7 @@
 #include "friClientApplication.h"
 #include "friLBRClient.h"
 #include "friUdpConnection.h"
+#include "fri_config.h"
 
 // Make LBRClient a Python abstract class
 class PyLBRClient : public KUKA::FRI::LBRClient {
@@ -64,6 +65,12 @@ PYBIND11_MODULE(pyFRIClient, m) {
   m.doc() = "Python bindings for the KUKA FRI Client SDK. THIS IS NOT A KUKA "
             "PRODUCT.";
 
+#if FRI_VERSION == 115
+  m.attr("FRI_VERSION") = "1.15";
+#elif FRI_VERSION == 25
+  m.attr("FRI_VERSION") = "2.5";
+#endif
+
   py::enum_<KUKA::FRI::ESessionState>(m, "ESessionState")
       .value("IDLE", KUKA::FRI::ESessionState::IDLE)
       .value("MONITORING_WAIT", KUKA::FRI::ESessionState::MONITORING_WAIT)
@@ -113,10 +120,14 @@ PYBIND11_MODULE(pyFRIClient, m) {
 
   py::enum_<KUKA::FRI::EClientCommandMode>(m, "EClientCommandMode")
       .value("NO_COMMAND_MODE", KUKA::FRI::EClientCommandMode::NO_COMMAND_MODE)
-      .value("JOINT_POSITION", KUKA::FRI::EClientCommandMode::JOINT_POSITION)
       .value("WRENCH", KUKA::FRI::EClientCommandMode::WRENCH)
       .value("TORQUE", KUKA::FRI::EClientCommandMode::TORQUE)
+#if FRI_VERSION == 115
+      .value("POSITION", KUKA::FRI::EClientCommandMode::POSITION)
+#elif FRI_VERSION == 25
+      .value("JOINT_POSITION", KUKA::FRI::EClientCommandMode::JOINT_POSITION)
       .value("CARTESIAN_POSE", KUKA::FRI::EClientCommandMode::CARTESIAN_POSE)
+#endif
       .export_values();
 
   py::enum_<KUKA::FRI::EOverlayType>(m, "EOverlayType")
@@ -125,10 +136,12 @@ PYBIND11_MODULE(pyFRIClient, m) {
       .value("CARTESIAN", KUKA::FRI::EOverlayType::CARTESIAN)
       .export_values();
 
+#if FRI_VERSION == 25
   py::enum_<KUKA::FRI::ERedundancyStrategy>(m, "ERedundancyStrategy")
       .value("E1", KUKA::FRI::ERedundancyStrategy::E1)
       .value("NO_STRATEGY", KUKA::FRI::ERedundancyStrategy::NO_STRATEGY)
       .export_values();
+#endif
 
   py::class_<KUKA::FRI::LBRState>(m, "LBRState")
       .def(py::init<>())
@@ -194,6 +207,7 @@ PYBIND11_MODULE(pyFRIClient, m) {
       .def("getBooleanIOValue", &KUKA::FRI::LBRState::getBooleanIOValue)
       .def("getDigitalIOValue", &KUKA::FRI::LBRState::getDigitalIOValue)
       .def("getAnalogIOValue", &KUKA::FRI::LBRState::getAnalogIOValue)
+#if FRI_VERSION == 25
       .def("getMeasuredCartesianPose",
            [](const KUKA::FRI::LBRState &self) {
              double data[3][4];
@@ -229,7 +243,9 @@ PYBIND11_MODULE(pyFRIClient, m) {
            &KUKA::FRI::LBRState::getMeasuredRedundancyValue)
       .def("getIpoRedundancyValue", &KUKA::FRI::LBRState::getIpoRedundancyValue)
       .def("getRedundancyStrategy",
-           &KUKA::FRI::LBRState::getRedundancyStrategy);
+           &KUKA::FRI::LBRState::getRedundancyStrategy)
+#endif
+      ; // NOTE: this completes LBRState
 
   py::class_<KUKA::FRI::LBRCommand>(m, "LBRCommand")
       .def(py::init<>())

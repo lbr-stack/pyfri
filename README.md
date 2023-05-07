@@ -8,11 +8,20 @@ KUKA Fast Robot Interface Python SDK.
 
 [@cmower](https://github.com/cmower) is not affiliated with KUKA.
 
+# Support
+
+The following versions of FRI are currently supported:
+* 1.15
+* 2.5
+
+If you have a different version, please consider [forking](https://github.com/cmower/FRI-Client-SDK_Cpp/fork) and [submitting a pull request](https://github.com/cmower/FRI-Client-SDK_Cpp/pulls).
+
 # Install
 
 1. Clone repository: `$ git clone --recursive git@github.com:cmower/FRI-Client-SDK_Python.git` (make sure you include `--recursive`)
-2. Change directory; `$ cd FRI-Client-SDK_Python`
-3. Install: `$ pip install .`
+2. Change directory; `$ cd FRI-Client-SDK_Python`j
+3. Modify `project.toml`: uncomment the line corresponding to your version of FRI.
+4. Install: `$ pip install .`
 
 # Examples
 
