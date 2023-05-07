@@ -1,4 +1,10 @@
+#########################################################################
+## NOTE: Do not invoke this cmake yourself, use pip install . (see the ##
+## README.md file).                                                    ##
+#########################################################################
+
 cmake_minimum_required(VERSION 3.16.3)
+
 project(pyFRIClient)
 
 # Remove build/ directory, this avoids linking errors when building
