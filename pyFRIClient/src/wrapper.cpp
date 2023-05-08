@@ -65,11 +65,10 @@ PYBIND11_MODULE(pyFRIClient, m) {
   m.doc() = "Python bindings for the KUKA FRI Client SDK. THIS IS NOT A KUKA "
             "PRODUCT.";
 
-#if FRI_VERSION == 115
-  m.attr("FRI_VERSION") = "1.15";
-#elif FRI_VERSION == 25
-  m.attr("FRI_VERSION") = "2.5";
-#endif
+  m.attr("FRI_VERSION_MAJOR") = FRI_VERSION_MAJOR;
+  m.attr("FRI_VERSION_MINOR") = FRI_VERSION_MINOR;
+  m.attr("FRI_VERSION") = std::to_string(FRI_VERSION_MAJOR) + "." +
+                          std::to_string(FRI_VERSION_MINOR);
 
   py::enum_<KUKA::FRI::ESessionState>(m, "ESessionState")
       .value("IDLE", KUKA::FRI::ESessionState::IDLE)
@@ -122,9 +121,9 @@ PYBIND11_MODULE(pyFRIClient, m) {
       .value("NO_COMMAND_MODE", KUKA::FRI::EClientCommandMode::NO_COMMAND_MODE)
       .value("WRENCH", KUKA::FRI::EClientCommandMode::WRENCH)
       .value("TORQUE", KUKA::FRI::EClientCommandMode::TORQUE)
-#if FRI_VERSION == 115
+#if FRI_VERSION_MAJOR == 1
       .value("POSITION", KUKA::FRI::EClientCommandMode::POSITION)
-#elif FRI_VERSION == 25
+#elif FRI_VERSION_MAJOR == 2
       .value("JOINT_POSITION", KUKA::FRI::EClientCommandMode::JOINT_POSITION)
       .value("CARTESIAN_POSE", KUKA::FRI::EClientCommandMode::CARTESIAN_POSE)
 #endif
@@ -136,7 +135,7 @@ PYBIND11_MODULE(pyFRIClient, m) {
       .value("CARTESIAN", KUKA::FRI::EOverlayType::CARTESIAN)
       .export_values();
 
-#if FRI_VERSION == 25
+#if FRI_VERSION_MAJOR == 2
   py::enum_<KUKA::FRI::ERedundancyStrategy>(m, "ERedundancyStrategy")
       .value("E1", KUKA::FRI::ERedundancyStrategy::E1)
       .value("NO_STRATEGY", KUKA::FRI::ERedundancyStrategy::NO_STRATEGY)
@@ -207,7 +206,7 @@ PYBIND11_MODULE(pyFRIClient, m) {
       .def("getBooleanIOValue", &KUKA::FRI::LBRState::getBooleanIOValue)
       .def("getDigitalIOValue", &KUKA::FRI::LBRState::getDigitalIOValue)
       .def("getAnalogIOValue", &KUKA::FRI::LBRState::getAnalogIOValue)
-#if FRI_VERSION == 25
+#if FRI_VERSION_MAJOR == 2
       .def("getMeasuredCartesianPose",
            [](const KUKA::FRI::LBRState &self) {
              double data[3][4];
