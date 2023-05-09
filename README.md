@@ -23,6 +23,10 @@ If you have a different version, please consider [forking](https://github.com/cm
 3. Modify `project.toml`: uncomment the line corresponding to your version of FRI.
 4. Install: `$ pip install .`
 
+## Upgrading/switching between FRI Versions
+
+If you upgrade your FRI version or want to switch between them, you need to manually remove the `FRI-Client-SDK_Python/build` directory before running `pip install`.
+
 # Examples
 
 First, ensure the corresponding Java applications for each example are installed (these were supplied with KUKA Sunrise).
