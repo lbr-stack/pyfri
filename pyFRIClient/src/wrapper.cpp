@@ -171,14 +171,6 @@ PYBIND11_MODULE(pyFRIClient, m) {
              return py::array_t<double>({KUKA::FRI::LBRState::NUMBER_OF_JOINTS},
                                         data);
            })
-      .def("getCommandedJointPosition",
-           [](const KUKA::FRI::LBRState &self) {
-             double data[KUKA::FRI::LBRState::NUMBER_OF_JOINTS];
-             memcpy(data, self.getCommandedJointPosition(),
-                    KUKA::FRI::LBRState::NUMBER_OF_JOINTS * sizeof(double));
-             return py::array_t<double>({KUKA::FRI::LBRState::NUMBER_OF_JOINTS},
-                                        data);
-           })
       .def("getMeasuredTorque",
            [](const KUKA::FRI::LBRState &self) {
              double data[KUKA::FRI::LBRState::NUMBER_OF_JOINTS];
@@ -216,7 +208,16 @@ PYBIND11_MODULE(pyFRIClient, m) {
       .def("getBooleanIOValue", &KUKA::FRI::LBRState::getBooleanIOValue)
       .def("getDigitalIOValue", &KUKA::FRI::LBRState::getDigitalIOValue)
       .def("getAnalogIOValue", &KUKA::FRI::LBRState::getAnalogIOValue)
-#if FRI_VERSION_MAJOR == 2
+#if FRI_VERSION_MAJOR == 1
+      .def("getCommandedJointPosition",
+           [](const KUKA::FRI::LBRState &self) {
+             double data[KUKA::FRI::LBRState::NUMBER_OF_JOINTS];
+             memcpy(data, self.getCommandedJointPosition(),
+                    KUKA::FRI::LBRState::NUMBER_OF_JOINTS * sizeof(double));
+             return py::array_t<double>({KUKA::FRI::LBRState::NUMBER_OF_JOINTS},
+                                        data);
+           })
+#elif FRI_VERSION_MAJOR == 2
       .def("getMeasuredCartesianPose",
            [](const KUKA::FRI::LBRState &self) {
              double data[3][4];
