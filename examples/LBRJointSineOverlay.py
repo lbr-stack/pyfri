@@ -28,7 +28,9 @@ class LBRJointSineOverlayClient(fri.LBRClient):
             )
 
     def waitForCommand(self):
-        self.robotCommand().setJointPosition(self.robotState().getIpoJointPosition().astype(np.float32))
+        self.robotCommand().setJointPosition(
+            self.robotState().getIpoJointPosition().astype(np.float32)
+        )
 
     def command(self):
         new_offset = self.ampl_rad * math.sin(self.phi)
