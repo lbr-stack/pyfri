@@ -2,6 +2,8 @@ import sys
 import math
 import pyFRIClient as fri
 
+import numpy as np
+
 
 class LBRJointSineOverlayClient(fri.LBRClient):
     def __init__(self, joint_mask, freq_hz, ampl_rad, filter_coeff):
@@ -26,7 +28,7 @@ class LBRJointSineOverlayClient(fri.LBRClient):
             )
 
     def waitForCommand(self):
-        self.robotCommand().setJointPosition(self.robotState().getIpoJointPosition())
+        self.robotCommand().setJointPosition(self.robotState().getIpoJointPosition().astype(np.float32))
 
     def command(self):
         new_offset = self.ampl_rad * math.sin(self.phi)
@@ -38,7 +40,7 @@ class LBRJointSineOverlayClient(fri.LBRClient):
             self.phi -= 2 * math.pi
         joint_pos = self.robotState().getIpoJointPosition()
         joint_pos[self.joint_mask] += self.offset
-        self.robotCommand().setJointPosition(joint_pos)
+        self.robotCommand().setJointPosition(joint_pos.astype(np.float32))
 
 
 def main():

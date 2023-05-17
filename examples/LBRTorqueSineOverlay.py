@@ -29,13 +29,13 @@ class LBRTorqueSineOverlayClient(fri.LBRClient):
             )
 
     def waitForCommand(self):
-        self.robotCommand().setJointPosition(self.robotState().getIpoJointPosition())
+        self.robotCommand().setJointPosition(self.robotState().getIpoJointPosition().astype(np.float32))
 
         if self.robotState().getClientCommandMode() == fri.EClientCommandMode.TORQUE:
-            self.robotCommand().setTorque(self.torques)
+            self.robotCommand().setTorque(self.torques.astype(np.float32))
 
     def command(self):
-        self.robotCommand().setJointPosition(self.robotState().getIpoJointPosition())
+        self.robotCommand().setJointPosition(self.robotState().getIpoJointPosition().astype(np.float32))
 
         if self.robotState().getClientCommandMode() == fri.EClientCommandMode.TORQUE:
             offset = self.torque_ampl * math.sin(self.phi)
@@ -46,7 +46,7 @@ class LBRTorqueSineOverlayClient(fri.LBRClient):
 
             self.torques[self.joint_mask] = offset
 
-            self.robotCommand().setTorque(self.torques)
+            self.robotCommand().setTorque(self.torques.astype(np.float32))
 
 
 def main():
