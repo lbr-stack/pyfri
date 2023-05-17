@@ -5,48 +5,44 @@ import pyFRIClient as fri
 import numpy as np
 
 
-class LBRTorqueSineOverlayClient(fri.LBRClient):
-    def __init__(self, joint_mask, freq_hz, torque_amplitude):
+class LBRJointSineOverlayClient(fri.LBRClient):
+    def __init__(self, joint_mask, freq_hz, ampl_rad, filter_coeff):
         super().__init__()
         self.joint_mask = joint_mask
         self.freq_hz = freq_hz
-        self.torque_ampl = torque_amplitude
+        self.ampl_rad = ampl_rad
+        self.filter_coeff = filter_coeff
+        self.offset = 0.0
         self.phi = 0.0
         self.step_width = 0.0
-        self.torques = np.zeros(fri.LBRState.NUMBER_OF_JOINTS)
 
     def monitor(self):
         pass
 
     def onStateChange(self, old_state, new_state):
-        print(f"State changed from {old_state} to {new_state}")
-
         if new_state == fri.ESessionState.MONITORING_READY:
-            self.torques = np.zeros(fri.LBRState.NUMBER_OF_JOINTS)
+            self.offset = 0.0
             self.phi = 0.0
             self.step_width = (
                 2 * math.pi * self.freq_hz * self.robotState().getSampleTime()
             )
 
     def waitForCommand(self):
-        self.robotCommand().setJointPosition(self.robotState().getIpoJointPosition())
-
-        if self.robotState().getClientCommandMode() == fri.EClientCommandMode.TORQUE:
-            self.robotCommand().setTorque(self.torques)
+        self.robotCommand().setJointPosition(
+            self.robotState().getIpoJointPosition().astype(np.float32)
+        )
 
     def command(self):
-        self.robotCommand().setJointPosition(self.robotState().getIpoJointPosition())
-
-        if self.robotState().getClientCommandMode() == fri.EClientCommandMode.TORQUE:
-            offset = self.torque_ampl * math.sin(self.phi)
-            self.phi += self.step_width
-
-            if self.phi >= 2 * math.pi:
-                self.phi -= 2 * math.pi
-
-            self.torques[self.joint_mask] = offset
-
-            self.robotCommand().setTorque(self.torques)
+        new_offset = self.ampl_rad * math.sin(self.phi)
+        self.offset = (self.offset * self.filter_coeff) + (
+            new_offset * (1.0 - self.filter_coeff)
+        )
+        self.phi += self.step_width
+        if self.phi >= (2 * math.pi):
+            self.phi -= 2 * math.pi
+        joint_pos = self.robotState().getIpoJointPosition()
+        joint_pos[self.joint_mask] += self.offset
+        self.robotCommand().setJointPosition(joint_pos.astype(np.float32))
 
 
 def main():
@@ -54,8 +50,9 @@ def main():
 
     joint_mask = 3
     freq_hz = 0.25
-    torque_amplitude = 15.0
-    client = LBRTorqueSineOverlayClient(joint_mask, freq_hz, torque_amplitude)
+    ampl_rad = 0.04
+    filter_coeff = 0.99
+    client = LBRJointSineOverlayClient(joint_mask, freq_hz, ampl_rad, filter_coeff)
 
     app = fri.ClientApplication(client)
 
@@ -79,7 +76,6 @@ def main():
 
     finally:
         app.disconnect()
-        print("Goodbye")
 
     return 0
 

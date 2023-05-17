@@ -16,6 +16,8 @@
 #include "friUdpConnection.h"
 #include "fri_config.h"
 
+#include <memory>
+
 // Make LBRClient a Python abstract class
 class PyLBRClient : public KUKA::FRI::LBRClient {
 
@@ -42,10 +44,10 @@ class PyClientApplication {
 
 public:
   PyClientApplication(PyLBRClient &client) {
-    _app = new KUKA::FRI::ClientApplication(_connection, client);
+    _app = std::make_unique<KUKA::FRI::ClientApplication>(_connection, client);
   }
 
-  bool connect(const int port, char *const remoteHost) {
+  bool connect(const int port, char *const remoteHost = NULL) {
     return _app->connect(port, remoteHost);
   }
 
@@ -55,7 +57,7 @@ public:
 
 private:
   KUKA::FRI::UdpConnection _connection;
-  KUKA::FRI::ClientApplication *_app;
+  std::unique_ptr<KUKA::FRI::ClientApplication> _app;
 };
 
 // Python bindings
@@ -206,7 +208,16 @@ PYBIND11_MODULE(pyFRIClient, m) {
       .def("getBooleanIOValue", &KUKA::FRI::LBRState::getBooleanIOValue)
       .def("getDigitalIOValue", &KUKA::FRI::LBRState::getDigitalIOValue)
       .def("getAnalogIOValue", &KUKA::FRI::LBRState::getAnalogIOValue)
-#if FRI_VERSION_MAJOR == 2
+#if FRI_VERSION_MAJOR == 1
+      .def("getCommandedJointPosition",
+           [](const KUKA::FRI::LBRState &self) {
+             double data[KUKA::FRI::LBRState::NUMBER_OF_JOINTS];
+             memcpy(data, self.getCommandedJointPosition(),
+                    KUKA::FRI::LBRState::NUMBER_OF_JOINTS * sizeof(double));
+             return py::array_t<double>({KUKA::FRI::LBRState::NUMBER_OF_JOINTS},
+                                        data);
+           })
+#elif FRI_VERSION_MAJOR == 2
       .def("getMeasuredCartesianPose",
            [](const KUKA::FRI::LBRState &self) {
              double data[3][4];
