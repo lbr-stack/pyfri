@@ -29,6 +29,13 @@ If you upgrade your FRI version or want to switch between them, you need to manu
 
 # Usage
 
+## Java application
+
+A flexible Java application is provided [here](java/LBRServer.java).
+This must be installed on the KUKA Sunrise controller.
+
+## Data types
+
 You can pass NumPy arrays to the "set" methods (e.g. `setJointPosition`) in order to command the robot.
 However, you **must** ensure the format of the array is correct.
 
