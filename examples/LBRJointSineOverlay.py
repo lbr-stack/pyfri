@@ -44,7 +44,7 @@ class LBRJointSineOverlayClient(fri.LBRClient):
 def main():
     print("Running FRI Version:", fri.FRI_VERSION)
 
-    joint_mask = 5
+    joint_mask = 3
     freq_hz = 0.25
     ampl_rad = 0.04
     filter_coeff = 0.99
