@@ -27,6 +27,14 @@ If you have a different version, please consider [forking](https://github.com/cm
 
 If you upgrade your FRI version or want to switch between them, you need to manually remove the `FRI-Client-SDK_Python/build` directory before running `pip install`.
 
+# Usage
+
+You can pass NumPy arrays to the "set" methods (e.g. `setJointPosition`) in order to command the robot.
+However, you **must** ensure the format of the array is correct.
+
+Arrays that have a `dtype` of `np.float32` are the only ones that can be accepted.
+See how the commands are set in the the examples.
+
 # Examples
 
 First, ensure the corresponding Java applications for each example are installed (these were supplied with KUKA Sunrise).
