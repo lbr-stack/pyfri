@@ -77,7 +77,7 @@ See how the commands are set in the the examples.
 First, ensure the corresponding Java applications for each example are installed (these were supplied with KUKA Sunrise).
 Then turn on the robot, connect your laptop via ethernet, and follow these steps on your laptop.
 
-1. Change directory: `cd /path/to/FRI-Client-SDK_Python/python_examples`
+1. Change directory: `cd /path/to/FRI-Client-SDK_Python/examples`
 2. Run examples
    - `$ python LBRJointSineOverlay.py`
    - `$ python LBRTorqueSineOverlay.py`
