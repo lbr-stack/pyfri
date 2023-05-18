@@ -7,9 +7,30 @@ from pathlib import Path
 from setuptools import Extension, setup
 from setuptools.command.build_ext import build_ext
 
+
 # Read the configuration settings
+class UserInputRequired(Exception):
+    def __init__(self, msg):
+        super().__init__(msg)
+
+
 config = toml.load("project.toml")
-FRI_VERSION = config.get("FRI")["FRI_VERSION"]
+FRI_VERSION = None
+try:
+    FRI_VERSION = config.get("FRI")["FRI_VERSION"]
+except KeyError:
+    pass
+
+if FRI_VERSION is None:
+    STARTC = "\033[91m"
+    ENDC = "\033[0m"
+    raise UserInputRequired(
+        "\n\n"
+        + STARTC
+        + ">> FRI_VERSION not set in project.toml, refer to the Install section in README.md. <<"
+        + ENDC
+        + "\n"
+    )
 
 # Convert distutils Windows platform specifiers to CMake -A arguments
 PLAT_TO_CMAKE = {
