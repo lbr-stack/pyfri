@@ -74,6 +74,48 @@ class Keyboard:
 
 
 class IK:
+
+    """
+    Inverse Kinematics
+    ==================
+
+    This class solves the following optimization problem.
+
+
+    q0*, qf*, dq*   =     arg  min    || p(qf) - pg ||^2  +  w * || dq ||^2
+                         q0, qf, dq
+
+    s.t.
+
+           Goal velocity
+           pg = p(qc) + dt * vg
+
+           Initial configuration:
+           q0 == qc
+
+           Joint limits:
+           q- <= q0 <= q+
+           q- <= qf <= q+
+
+           Dynamics:
+           qf = q0 + dt * dq
+
+
+    Decision variables: q0, qf, dq
+    Parameters:
+      qc : current joint configuration
+      dt : time step
+      vg : linear goal end-effector velocity
+      w  : cost term weight
+
+    Functions:
+      p( .. ) : Forward kinematics (global link position)
+
+    Solver:
+      SLSQP from scipy.minimize. This is an SQP solver.
+
+    """
+
     def __init__(self, robot_model, eelink):
         # Setup robot model
         self.robot = robot_model
