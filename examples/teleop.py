@@ -122,7 +122,7 @@ class IK:
         self.solver = optas.ScipyMinimizeSolver(optimization_problem).setup("SLSQP")
         self.solution = None
 
-    def __call__(self, qcurr, vgoal):
+    def __call__(self, qcurr, vgoal, dt):
         # Setup solver
         if self.solution is not None:
             self.solver.reset_initial_seed(self.solution)
@@ -131,7 +131,7 @@ class IK:
                 {f"{self.name}/q": optas.horzcat(qcurr, qcurr)}
             )
 
-        self.solver.reset_parameters({"qcurr": qcurr, "vgoal": vgoal})
+        self.solver.reset_parameters({"qcurr": qcurr, "vgoal": vgoal, "dt": dt})
 
         # Solve problem
         self.solution = self.solver.solve()
@@ -160,9 +160,10 @@ class TeleopClient(fri.LBRClient):
         self.set_position(self.robotState().getIpoJointPosition())
 
     def command(self):
+        dt = self.robotState().getSampleTime()
         qcurr = self.robotState().getIpoJointPosition()
         vgoal = self.keyboard()
-        qgoal = self.ik(qcurr, vgoal)
+        qgoal = self.ik(qcurr, vgoal, dt)
         self.set_position(qgoal)
 
 
