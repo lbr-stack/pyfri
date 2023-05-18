@@ -198,7 +198,8 @@ public class LBRServer extends RoboticsAPIApplication {
                 "500",
                 "200",
                 "100",
-                "50");
+                "50",
+                "Default (1000)");
 
         switch (usrin) {
           case 0:
@@ -229,7 +230,8 @@ public class LBRServer extends RoboticsAPIApplication {
                 "0.25",
                 "0.5",
                 "0.75",
-                "1.0");
+                "1.0",
+                "Default (0.7)");
 
         switch (usrin) {
           case 0:
