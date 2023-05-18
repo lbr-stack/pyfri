@@ -1,4 +1,6 @@
 import sys
+
+# FRI Client: https://github.com/cmower/FRI-Client-SDK_Python
 import pyFRIClient as fri
 
 # OpTaS: https://github.com/cmower/optas
@@ -72,9 +74,9 @@ class Keyboard:
 
 
 class IK:
-    def __init__(self, urdf_file_name, eelink):
+    def __init__(self, robot_model, eelink):
         # Setup robot model
-        self.robot = optas.RobotModel(urdf_filename=urdf_file_name, time_derivs=[0, 1])
+        self.robot = robot_model
         self.name = self.robot.get_name()
 
         # Setup optimization builder
@@ -167,10 +169,21 @@ class TeleopClient(fri.LBRClient):
 def main():
     print("Running FRI Version:", fri.FRI_VERSION)
 
-    urdf_file_name = ""  # TODO
-    eelink = ""  # TODO
+    try:
+        lbr_med_num = int(sys.argv[1])
+    except IndexError:
+        print("You need to supply a LBR Med version number. Either 7 or 14.")
+        return 1
 
-    ik = IK(urdf_file_name, eelink)
+    if lbr_med_num not in {7, 14}:
+        print("You need to supply a LBR Med version number. Either 7 or 14.")
+        return 1
+
+    xacro_file_name = f"robots/med{lbr_med_num}.urdf.xacro"
+    eelink = "lbr_link_ee"
+    robot_model = optas.RobotModel(xacro_filename=xacro_file_name, time_derivs=[0, 1])
+
+    ik = IK(robot_model, eelink)
     client = TeleopClient(ik)
     app = fri.ClientApplication(client)
 
