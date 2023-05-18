@@ -1,6 +1,36 @@
 # FRI-Client-SDK_Python
 
 KUKA Fast Robot Interface Python SDK.
+The code provided in this repository, provides Python bindings for the FRI Client SDK C++.
+The interface has been designed to be as similar as possible to the documentation provided by KUKA.
+
+There is one difference users of the Python bindings should be aware.
+When instantiating the client application, in C++ this is performed as follows.
+
+```cpp
+// ..setup client..
+
+// create new udp connection
+UdpConnection connection;
+
+
+// pass connection and client to a new FRI client application
+ClientApplication app(connection, client);
+```
+
+In Python, the equivalent code is as follows.
+
+```python
+import pyFRIClient as fri
+
+# ..setup client..
+
+app = fri.ClientApplication(client)
+```
+
+Since UDP is the only supported connection type and the connection object is not actually required by the user after declaring the variable, the `UdpConnection` object is created internally to the `fri.ClientApplication` class object.
+
+See the [examples](examples/).
 
 # Important notice
 
