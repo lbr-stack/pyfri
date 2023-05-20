@@ -1,6 +1,7 @@
 // Standard library
 #include <cstdio>
 #include <string>
+#include <memory>
 
 // NumPy: https://numpy.org/
 #include <numpy/arrayobject.h>
@@ -15,8 +16,6 @@
 #include "friLBRClient.h"
 #include "friUdpConnection.h"
 #include "fri_config.h"
-
-#include <memory>
 
 // Make LBRClient a Python abstract class
 class PyLBRClient : public KUKA::FRI::LBRClient {
