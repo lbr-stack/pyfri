@@ -338,7 +338,21 @@ PYBIND11_MODULE(pyFRIClient, m) {
              const double *data = static_cast<double *>(buf.ptr);
              self.setJointPosition(data);
            })
-      // .def("setWrench", &KUKA::FRI::LBRCommand::setWrench)   // TODO
+      .def("setWrench",
+           [](KUKA::FRI::LBRCommand &self, py::array_t<double> values) {
+             if (values.ndim() != 1 ||
+                 PyArray_DIMS(values.ptr())[0] !=
+                     6 // [F_x, F_y, F_z, tau_A, tau_B, tau_C]
+             ) {
+               throw std::runtime_error(
+                   "Input array must have shape (" +
+                   std::to_string(KUKA::FRI::LBRState::NUMBER_OF_JOINTS) +
+                   ",)!");
+             }
+             auto buf = values.request();
+             const double *data = static_cast<double *>(buf.ptr);
+             self.setTorque(data);
+           })
       .def("setTorque",
            [](KUKA::FRI::LBRCommand &self, py::array_t<double> values) {
              if (values.ndim() != 1 ||
