@@ -1,7 +1,7 @@
 // Standard library
 #include <cstdio>
-#include <string>
 #include <memory>
+#include <string>
 
 // NumPy: https://numpy.org/
 #include <numpy/arrayobject.h>
