@@ -158,7 +158,7 @@ setup(
     description="Python bindings for the FRI Client SDK library.",
     long_description="",
     ext_modules=[CMakeExtension("pyFRIClient")],
-    install_requires=["numpy"],
+    install_requires=["numpy", "pygame"],
     cmdclass={"build_ext": CMakeBuild},
     python_requires=">=3.8",
 )
