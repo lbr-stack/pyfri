@@ -2,6 +2,34 @@ import optas
 
 
 class IK:
+
+    """
+
+    This class solves the following problem
+
+    q0*, qf*, dq*    =    arg min   w1 || Jl dq - vg ||^2 + w2 || dq ||^2
+                        q0, qf, dq
+
+        subject to
+                          q0 = qc           (initial configuration)
+                    q- <= q0, qf <= q+      (joint limits)
+                          q0 + dt*dq = qf   (dynamics)
+
+
+    Decision variables
+      q0: initial joint state
+      qf: final joint state
+      dq: joint velocity
+
+    Parameters
+      qc: current joint state
+      dt: time step
+      w1, w2: cost term weights
+      vg: linear task space goal
+      q-, q+: lower, upper joint limits
+
+    """
+
     def __init__(self, lbr_med_num):
         # Setup robot
         xacro_file_name = f"robots/med{lbr_med_num}.urdf.xacro"
