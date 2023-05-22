@@ -91,6 +91,15 @@ class TeleopClient(fri.LBRClient):
             self.q = None
             self.torques = np.zeros(fri.LBRState.NUMBER_OF_JOINTS)
 
+            print("\n")
+            print("-----------------------------------------------------------")
+            print("-- Control robot joints using LEFT/RIGHT direction keys. --")
+            print("-- Press keys 1, ..., 7 to enable a specific joint.      --")
+            print(
+                "-----------------------------------------------------------",
+                end="\n\n\n",
+            )
+
     def waitForCommand(self):
         self.q = self.robotState().getIpoJointPosition()
         self.robotCommand().setJointPosition(self.q.astype(np.float32))
