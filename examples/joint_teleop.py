@@ -93,6 +93,7 @@ class TeleopClient(fri.LBRClient):
             print("-----------------------------------------------------------")
             print("-- Control robot joints using LEFT/RIGHT direction keys. --")
             print("-- Press keys 1, ..., 7 to enable a specific joint.      --")
+            print("-- The PyGame window must be in focus.                   --")
             print(
                 "-----------------------------------------------------------",
                 end="\n\n\n",
