@@ -28,6 +28,9 @@ class IK:
       vg: task space velocity goal (linear and angular)
       q-, q+: lower, upper joint limits
 
+    Function
+      J(..): geometric Jacobian
+
     """
 
     def __init__(self, lbr_med_num):
