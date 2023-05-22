@@ -36,6 +36,9 @@ class Keyboard:
         self.key_task_map[pygame.K_x] = "x"
         self.key_task_map[pygame.K_y] = "y"
         self.key_task_map[pygame.K_z] = "z"
+        self.key_task_map[pygame.K_r] = "rx"
+        self.key_task_map[pygame.K_p] = "ry"
+        self.key_task_map[pygame.K_a] = "rz"
 
     def __call__(self):
         for event in pygame.event.get():
@@ -113,10 +116,8 @@ class TeleopClient(fri.LBRClient):
         task_index, vgoal = self.keyboard()
 
         if isinstance(task_index, int):
-            vg = np.zeros(3)
+            vg = np.zeros(len(self.keyboard.key_task_map))
             vg[task_index] = vgoal
-
-            q = self.q.copy()
 
             self.q = self.ik(self.q, vg, self.robotState().getSampleTime())
 

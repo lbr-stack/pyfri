@@ -7,7 +7,7 @@ class IK:
 
     This class solves the following problem
 
-    q0*, qf*, dq*    =    arg min   w1 || Jl dq - vg ||^2 + w2 || dq ||^2
+    q0*, qf*, dq*    =    arg min   w1 || J(qc) dq - vg ||^2 + w2 || dq ||^2
                         q0, qf, dq
 
         subject to
@@ -25,7 +25,7 @@ class IK:
       qc: current joint state
       dt: time step
       w1, w2: cost term weights
-      vg: linear task space goal
+      vg: task space velocity goal (linear and angular)
       q-, q+: lower, upper joint limits
 
     """
@@ -45,7 +45,9 @@ class IK:
 
         # Set parameters
         qc = builder.add_parameter("qc", self.robot.ndof)  # current joint position
-        vg = builder.add_parameter("vg", 3)  # task space velocity goal: [vx, vy, vz]
+        vg = builder.add_parameter(
+            "vg", 6
+        )  # task space velocity goal: [vx, vy, vz, wx, wy, wz]
         dt = builder.add_parameter("dt")  # time step
 
         # Get model states
@@ -53,7 +55,7 @@ class IK:
         dq = builder.get_model_state(self.name, t=0, time_deriv=1)
 
         # Cost: end-effector goal velocity
-        Jl = self.robot.get_global_link_linear_jacobian(ee_link, qc)
+        J = self.robot.get_global_link_geometricjacobian(ee_link, qc)
         builder.add_cost_term("ee_vel_goal", 50.0 * optas.sumsqr(Jl @ dq - vg))
 
         # Constraint: initial configuration
