@@ -18,6 +18,15 @@ np.set_printoptions(precision=5, suppress=True, linewidth=1000)
 from ik import IK
 
 
+def print_instructions():
+    print("\n")
+    print("-" * 65)
+    print("-- Control robot joints using LEFT/RIGHT direction keys.       --")
+    print("-- Press keys x, y, z, r, p, a to enable a specific task axis. --")
+    print("-- The PyGame window must be in focus.                         --")
+    print("-" * 65, end="\n\n\n")
+
+
 class Keyboard:
     def __init__(self):
         pygame.display.set_mode((300, 300))
@@ -95,23 +104,7 @@ class TeleopClient(fri.LBRClient):
             self.q = None
             self.torques = np.zeros(fri.LBRState.NUMBER_OF_JOINTS)
 
-            print("\n")
-            print(
-                "--------------------------------------------------------------------"
-            )
-            print(
-                "-- Control robot joints using LEFT/RIGHT direction keys.          --"
-            )
-            print(
-                "-- Press keys x, y, z, r, p, a to enable a specific task axis.    --"
-            )
-            print(
-                "-- The PyGame window must be in focus.                            --"
-            )
-            print(
-                "--------------------------------------------------------------------",
-                end="\n\n\n",
-            )
+            print_instructions()
 
     def waitForCommand(self):
         self.q = self.robotState().getIpoJointPosition()
