@@ -96,12 +96,20 @@ class TeleopClient(fri.LBRClient):
             self.torques = np.zeros(fri.LBRState.NUMBER_OF_JOINTS)
 
             print("\n")
-            print("-----------------------------------------------------------")
-            print("-- Control robot joints using LEFT/RIGHT direction keys. --")
-            print("-- Press keys x, y, z to enable a specific task axis.    --")
-            print("-- The PyGame window must be in focus.                   --")
             print(
-                "-----------------------------------------------------------",
+                "--------------------------------------------------------------------"
+            )
+            print(
+                "-- Control robot joints using LEFT/RIGHT direction keys.          --"
+            )
+            print(
+                "-- Press keys x, y, z, r, p, a to enable a specific task axis.    --"
+            )
+            print(
+                "-- The PyGame window must be in focus.                            --"
+            )
+            print(
+                "--------------------------------------------------------------------",
                 end="\n\n\n",
             )
 
