@@ -11,8 +11,6 @@ pygame.init()
 # NumPy: https://numpy.org/
 import numpy as np
 
-np.set_printoptions(precision=6, suppress=True, linewidth=1000)
-
 
 class Keyboard:
     def __init__(self):
