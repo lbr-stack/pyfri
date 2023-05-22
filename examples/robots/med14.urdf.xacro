@@ -6,9 +6,6 @@
     <!-- include the lbr med macro -->
     <xacro:include filename="med14_description.urdf.xacro"/>
 
-    <xacro:arg name="robot_name" default="lbr"/>
-    <xacro:arg name="sim" default="true"/>
-
     <!-- fix to world -->
     <link name="world"/>
 
