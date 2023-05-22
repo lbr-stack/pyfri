@@ -43,7 +43,6 @@ class IK:
         # Setup solver
         opt = builder.build()
         self.solver = optas.ScipyMinimizeSolver(opt).setup("SLSQP")
-        # self.solver = optas.OSQPSolver(opt).setup(True)
         self.solution = None
 
     def __call__(self, qc, vg, dt):
