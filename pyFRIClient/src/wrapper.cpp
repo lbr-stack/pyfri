@@ -168,7 +168,7 @@ PYBIND11_MODULE(pyFRIClient, m) {
              double data[KUKA::FRI::LBRState::NUMBER_OF_JOINTS];
              memcpy(data, self.getMeasuredJointPosition(),
                     KUKA::FRI::LBRState::NUMBER_OF_JOINTS * sizeof(double));
-             return py::array_t<double>({KUKA::FRI::LBRState::NUMBER_OF_JOINTS},
+             return py::array_t<float>({KUKA::FRI::LBRState::NUMBER_OF_JOINTS},
                                         data);
            })
       .def("getMeasuredTorque",
@@ -176,7 +176,7 @@ PYBIND11_MODULE(pyFRIClient, m) {
              double data[KUKA::FRI::LBRState::NUMBER_OF_JOINTS];
              memcpy(data, self.getMeasuredTorque(),
                     KUKA::FRI::LBRState::NUMBER_OF_JOINTS * sizeof(double));
-             return py::array_t<double>({KUKA::FRI::LBRState::NUMBER_OF_JOINTS},
+             return py::array_t<float>({KUKA::FRI::LBRState::NUMBER_OF_JOINTS},
                                         data);
            })
       .def("getCommandedTorque",
@@ -184,7 +184,7 @@ PYBIND11_MODULE(pyFRIClient, m) {
              double data[KUKA::FRI::LBRState::NUMBER_OF_JOINTS];
              memcpy(data, self.getCommandedTorque(),
                     KUKA::FRI::LBRState::NUMBER_OF_JOINTS * sizeof(double));
-             return py::array_t<double>({KUKA::FRI::LBRState::NUMBER_OF_JOINTS},
+             return py::array_t<float>({KUKA::FRI::LBRState::NUMBER_OF_JOINTS},
                                         data);
            })
       .def("getExternalTorque",
@@ -192,7 +192,7 @@ PYBIND11_MODULE(pyFRIClient, m) {
              double data[KUKA::FRI::LBRState::NUMBER_OF_JOINTS];
              memcpy(data, self.getExternalTorque(),
                     KUKA::FRI::LBRState::NUMBER_OF_JOINTS * sizeof(double));
-             return py::array_t<double>({KUKA::FRI::LBRState::NUMBER_OF_JOINTS},
+             return py::array_t<float>({KUKA::FRI::LBRState::NUMBER_OF_JOINTS},
                                         data);
            })
       .def("getIpoJointPosition",
@@ -200,7 +200,7 @@ PYBIND11_MODULE(pyFRIClient, m) {
              double data[KUKA::FRI::LBRState::NUMBER_OF_JOINTS];
              memcpy(data, self.getIpoJointPosition(),
                     KUKA::FRI::LBRState::NUMBER_OF_JOINTS * sizeof(double));
-             return py::array_t<double>({KUKA::FRI::LBRState::NUMBER_OF_JOINTS},
+             return py::array_t<float>({KUKA::FRI::LBRState::NUMBER_OF_JOINTS},
                                         data);
            })
       .def("getTrackingPerformance",
@@ -214,7 +214,7 @@ PYBIND11_MODULE(pyFRIClient, m) {
              double data[KUKA::FRI::LBRState::NUMBER_OF_JOINTS];
              memcpy(data, self.getCommandedJointPosition(),
                     KUKA::FRI::LBRState::NUMBER_OF_JOINTS * sizeof(double));
-             return py::array_t<double>({KUKA::FRI::LBRState::NUMBER_OF_JOINTS},
+             return py::array_t<float>({KUKA::FRI::LBRState::NUMBER_OF_JOINTS},
                                         data);
            })
 #elif FRI_VERSION_MAJOR == 2
@@ -223,7 +223,7 @@ PYBIND11_MODULE(pyFRIClient, m) {
              double data[3][4];
              memcpy(data, self.getMeasuredCartesianPose(),
                     3 * 4 * sizeof(double));
-             py::array_t<double> np_array({3, 4}, &data[0][0]);
+             py::array_t<float> np_array({3, 4}, &data[0][0]);
              return np_array;
            })
       .def("getMeasuredCartesianPoseAsMatrix",
@@ -231,14 +231,14 @@ PYBIND11_MODULE(pyFRIClient, m) {
              py::array_t<double> result({3, 4});
              auto ptr = result.mutable_data();
              self.getMeasuredCartesianPoseAsMatrix(
-                 reinterpret_cast<double(&)[3][4]>(ptr));
+                 reinterpret_cast<float(&)[3][4]>(ptr));
              return result;
            })
       .def("getIpoCartesianPose",
            [](const KUKA::FRI::LBRState &self) {
              double data[3][4];
              memcpy(data, self.getIpoCartesianPose(), 3 * 4 * sizeof(double));
-             py::array_t<double> np_array({3, 4}, &data[0][0]);
+             py::array_t<float> np_array({3, 4}, &data[0][0]);
              return np_array;
            })
       .def("getIpoCartesianPoseAsMatrix",
@@ -246,7 +246,7 @@ PYBIND11_MODULE(pyFRIClient, m) {
              py::array_t<double> result({3, 4});
              auto ptr = result.mutable_data();
              self.getIpoCartesianPoseAsMatrix(
-                 reinterpret_cast<double(&)[3][4]>(ptr));
+                 reinterpret_cast<float(&)[3][4]>(ptr));
              return result;
            })
       .def("getMeasuredRedundancyValue",
