@@ -49,7 +49,7 @@ If you have a different version, please consider [forking](https://github.com/cm
 # Install
 
 1. Clone repository: `$ git clone --recursive git@github.com:cmower/FRI-Client-SDK_Python.git` (make sure you include `--recursive`)
-2. Change directory; `$ cd FRI-Client-SDK_Python`
+2. Change directory: `$ cd FRI-Client-SDK_Python`
 3. Modify `project.toml`: uncomment the line corresponding to your version of FRI.
 4. Install: `$ pip install .`
 
@@ -81,3 +81,4 @@ Then turn on the robot, connect your laptop via ethernet, and follow these steps
 2. Run examples
    - `$ python LBRJointSineOverlay.py`
    - `$ python LBRTorqueSineOverlay.py`
+
