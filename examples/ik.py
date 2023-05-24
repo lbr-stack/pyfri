@@ -58,8 +58,8 @@ class IK:
         dq = builder.get_model_state(self.name, t=0, time_deriv=1)
 
         # Cost: end-effector goal velocity
-        J = self.robot.get_global_link_geometricjacobian(ee_link, qc)
-        builder.add_cost_term("ee_vel_goal", 50.0 * optas.sumsqr(Jl @ dq - vg))
+        J = self.robot.get_global_link_geometric_jacobian(ee_link, qc)
+        builder.add_cost_term("ee_vel_goal", 50.0 * optas.sumsqr(J @ dq - vg))
 
         # Constraint: initial configuration
         builder.initial_configuration(self.name, qc)
