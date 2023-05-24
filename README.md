@@ -44,12 +44,15 @@ The following versions of FRI are currently supported:
 * 1.15
 * 2.5
 
+Note, whilst FRI version 2.5 is supported some functionality is not.
+Currently, FRI Cartesian Overlay is not supported by FRI-Client-SDK_Python.
+
 If you have a different version, please consider [forking](https://github.com/cmower/FRI-Client-SDK_Cpp/fork) and [submitting a pull request](https://github.com/cmower/FRI-Client-SDK_Cpp/pulls).
 
 # Install
 
 1. Clone repository: `$ git clone --recursive git@github.com:cmower/FRI-Client-SDK_Python.git` (make sure you include `--recursive`)
-2. Change directory; `$ cd FRI-Client-SDK_Python`
+2. Change directory: `$ cd FRI-Client-SDK_Python`
 3. Modify `project.toml`: uncomment the line corresponding to your version of FRI.
 4. Install: `$ pip install .`
 
@@ -61,7 +64,7 @@ If you upgrade your FRI version or want to switch between them, you need to manu
 
 ## Java application
 
-A flexible Java application is provided [here](java/LBRServer.java).
+A flexible Java application is provided [here](https://github.com/cmower/LBR-Java-app).
 This must be installed on the KUKA Sunrise controller.
 
 ## Data types

@@ -29,7 +29,7 @@ class LBRJointSineOverlayClient(fri.LBRClient):
 
     def waitForCommand(self):
         self.robotCommand().setJointPosition(
-            self.robotState().getIpoJointPosition().astype(np.float32)
+            self.robotState().getIpoJointPosition()
         )
 
     def command(self):
@@ -42,7 +42,7 @@ class LBRJointSineOverlayClient(fri.LBRClient):
             self.phi -= 2 * math.pi
         joint_pos = self.robotState().getIpoJointPosition()
         joint_pos[self.joint_mask] += self.offset
-        self.robotCommand().setJointPosition(joint_pos.astype(np.float32))
+        self.robotCommand().setJointPosition(joint_pos)
 
 
 def main():

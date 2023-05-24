@@ -13,7 +13,7 @@ class LBRTorqueSineOverlayClient(fri.LBRClient):
         self.torque_ampl = torque_amplitude
         self.phi = 0.0
         self.step_width = 0.0
-        self.torques = np.zeros(fri.LBRState.NUMBER_OF_JOINTS)
+        self.torques = np.zeros(fri.LBRState.NUMBER_OF_JOINTS, dtype=np.float32)
 
     def monitor(self):
         pass
@@ -22,7 +22,7 @@ class LBRTorqueSineOverlayClient(fri.LBRClient):
         print(f"State changed from {old_state} to {new_state}")
 
         if new_state == fri.ESessionState.MONITORING_READY:
-            self.torques = np.zeros(fri.LBRState.NUMBER_OF_JOINTS)
+            self.torques = np.zeros(fri.LBRState.NUMBER_OF_JOINTS, dtype=np.float32)
             self.phi = 0.0
             self.step_width = (
                 2 * math.pi * self.freq_hz * self.robotState().getSampleTime()
@@ -30,15 +30,15 @@ class LBRTorqueSineOverlayClient(fri.LBRClient):
 
     def waitForCommand(self):
         self.robotCommand().setJointPosition(
-            self.robotState().getIpoJointPosition().astype(np.float32)
+            self.robotState().getIpoJointPosition()
         )
 
         if self.robotState().getClientCommandMode() == fri.EClientCommandMode.TORQUE:
-            self.robotCommand().setTorque(self.torques.astype(np.float32))
+            self.robotCommand().setTorque(self.torques)
 
     def command(self):
         self.robotCommand().setJointPosition(
-            self.robotState().getIpoJointPosition().astype(np.float32)
+            self.robotState().getIpoJointPosition()
         )
 
         if self.robotState().getClientCommandMode() == fri.EClientCommandMode.TORQUE:
@@ -50,7 +50,7 @@ class LBRTorqueSineOverlayClient(fri.LBRClient):
 
             self.torques[self.joint_mask] = offset
 
-            self.robotCommand().setTorque(self.torques.astype(np.float32))
+            self.robotCommand().setTorque(self.torques)
 
 
 def main():
