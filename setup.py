@@ -1,7 +1,6 @@
 import os
 import re
 import sys
-import toml
 import subprocess
 from pathlib import Path
 from setuptools import Extension, setup
@@ -14,11 +13,10 @@ class UserInputRequired(Exception):
         super().__init__(msg)
 
 
-config = toml.load("project.toml")
 FRI_VERSION = None
 try:
-    FRI_VERSION = config.get("FRI")["FRI_VERSION"]
-except KeyError:
+    from fri_config import FRI_VERSION
+except ImportError:
     pass
 
 if FRI_VERSION is None:
@@ -27,7 +25,7 @@ if FRI_VERSION is None:
     raise UserInputRequired(
         "\n\n"
         + STARTC
-        + ">> FRI_VERSION not set in project.toml, refer to the Install section in README.md. <<"
+        + ">> FRI_VERSION not set in fri_config.py, refer to the Install section in README.md. <<"
         + ENDC
         + "\n"
     )
@@ -158,7 +156,7 @@ setup(
     description="Python bindings for the FRI Client SDK library.",
     long_description="",
     ext_modules=[CMakeExtension("pyFRIClient")],
-    install_requires=["numpy"],
+    install_requires=["numpy", "pygame", "pyoptas"],
     cmdclass={"build_ext": CMakeBuild},
     python_requires=">=3.8",
 )
