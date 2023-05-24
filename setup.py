@@ -15,7 +15,7 @@ class UserInputRequired(Exception):
 
 FRI_VERSION = None
 try:
-    from project import FRI_VERSION
+    from fri_config import FRI_VERSION
 except ImportError:
     pass
 
