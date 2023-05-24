@@ -272,37 +272,43 @@ PYBIND11_MODULE(pyFRIClient, m) {
                                        dataf);
            })
 #elif FRI_VERSION_MAJOR == 2
-      // .def("getMeasuredCartesianPose",
-      //      [](const KUKA::FRI::LBRState &self) {
-      //        double data[3][4];
-      //        memcpy(data, self.getMeasuredCartesianPose(),
-      //               3 * 4 * sizeof(double));
-      //        py::array_t<float> np_array({3, 4}, &data[0][0]);
-      //        return np_array;
-      //      })
-      // .def("getMeasuredCartesianPoseAsMatrix",
-      //      [](const KUKA::FRI::LBRState &self) {
-      //        py::array_t<double> result({3, 4});
-      //        auto ptr = result.mutable_data();
-      //        self.getMeasuredCartesianPoseAsMatrix(
-      //            reinterpret_cast<float(&)[3][4]>(ptr));
-      //        return result;
-      //      })
-      // .def("getIpoCartesianPose",
-      //      [](const KUKA::FRI::LBRState &self) {
-      //        double data[3][4];
-      //        memcpy(data, self.getIpoCartesianPose(), 3 * 4 * sizeof(double));
-      //        py::array_t<float> np_array({3, 4}, &data[0][0]);
-      //        return np_array;
-      //      })
-      // .def("getIpoCartesianPoseAsMatrix",
-      //      [](const KUKA::FRI::LBRState &self) {
-      //        py::array_t<double> result({3, 4});
-      //        auto ptr = result.mutable_data();
-      //        self.getIpoCartesianPoseAsMatrix(
-      //            reinterpret_cast<float(&)[3][4]>(ptr));
-      //        return result;
-      //      })
+    .def("getMeasuredCartesianPose",
+	 [](const KUKA::FRI::LBRState &self) {
+
+             // Declare variables
+             double data[KUKA::FRI::LBRState::NUMBER_OF_JOINTS];
+             float dataf[KUKA::FRI::LBRState::NUMBER_OF_JOINTS];
+
+             // Retrieve state
+             memcpy(data, self.getMeasuredCartesianPose(),
+                    KUKA::FRI::LBRState::NUMBER_OF_JOINTS * sizeof(double));
+
+             // Parse: double -> float
+             for (int i = 0; i < KUKA::FRI::LBRState::NUMBER_OF_JOINTS; i++)
+               dataf[i] = (float)data[i];
+
+             return py::array_t<float>({KUKA::FRI::LBRState::NUMBER_OF_JOINTS},
+                                       dataf);
+           })
+      .def("getMeasuredCartesianPoseAsMatrix",
+           [](const KUKA::FRI::LBRState &self) {
+	     // TODO
+	     throw std::runtime_error("getMeasuredCartesianPoseAsMatrix is not yet exposed (use .getMeasuredCartesianPose instead).");
+           })
+      .def("getIpoCartesianPose",
+           [](const KUKA::FRI::LBRState &self) {
+	     // TODO
+	     // Currently, FRI Cartesian Overlay is not supported by FRI-Client-SDK_Python.
+	     // IPO Cartesian Pose not available when FRI Cartesian Overlay is not active.
+	     throw std::runtime_error("getIpoCartesianPose is not yet exposed.");
+           })
+      .def("getIpoCartesianPoseAsMatrix",
+           [](const KUKA::FRI::LBRState &self) {
+	     // TODO
+	     // Currently, FRI Cartesian Overlay is not supported by FRI-Client-SDK_Python.
+	     // IPO Cartesian Pose not available when FRI Cartesian Overlay is not active.
+	     throw std::runtime_error("getIpoCartesianPoseAsMatrix is not yet exposed.");
+           })
       .def("getMeasuredRedundancyValue",
            &KUKA::FRI::LBRState::getMeasuredRedundancyValue)
       .def("getIpoRedundancyValue",
