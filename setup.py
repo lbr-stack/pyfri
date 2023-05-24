@@ -25,7 +25,7 @@ if FRI_VERSION is None:
     raise UserInputRequired(
         "\n\n"
         + STARTC
-        + ">> FRI_VERSION not set in project.py, refer to the Install section in README.md. <<"
+        + ">> FRI_VERSION not set in fri_config.py, refer to the Install section in README.md. <<"
         + ENDC
         + "\n"
     )
