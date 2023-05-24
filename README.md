@@ -44,6 +44,9 @@ The following versions of FRI are currently supported:
 * 1.15
 * 2.5
 
+Note, whilst FRI version 2.5 is supported some functionality is not.
+Currently, FRI Cartesian Overlay is not supported by FRI-Client-SDK_Python.
+
 If you have a different version, please consider [forking](https://github.com/cmower/FRI-Client-SDK_Cpp/fork) and [submitting a pull request](https://github.com/cmower/FRI-Client-SDK_Cpp/pulls).
 
 # Install
@@ -81,4 +84,3 @@ Then turn on the robot, connect your laptop via ethernet, and follow these steps
 2. Run examples
    - `$ python LBRJointSineOverlay.py`
    - `$ python LBRTorqueSineOverlay.py`
-
