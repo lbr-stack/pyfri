@@ -82,6 +82,8 @@ Then turn on the robot, connect your laptop via ethernet, and follow these steps
 
 1. Change directory: `cd /path/to/FRI-Client-SDK_Python/examples`
 2. Run examples
-   - `$ python LBRJointSineOverlay.py`
-   - `$ python LBRTorqueSineOverlay.py`
-   - `$ python LBRWrenchSineOverlay.py`
+   - `$ python LBRJointSineOverlay.py # based on examples provided by KUKA`
+   - `$ python LBRTorqueSineOverlay.py # based on examples provided by KUKA`
+   - `$ python LBRWrenchSineOverlay.py # based on examples provided by KUKA`
+   - `$ python joint_teleop.py`
+   - `$ python task_teleop.py`
