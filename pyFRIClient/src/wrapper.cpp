@@ -256,11 +256,20 @@ PYBIND11_MODULE(pyFRIClient, m) {
 #if FRI_VERSION_MAJOR == 1
       .def("getCommandedJointPosition",
            [](const KUKA::FRI::LBRState &self) {
+             // Declare variables
              double data[KUKA::FRI::LBRState::NUMBER_OF_JOINTS];
+             float dataf[KUKA::FRI::LBRState::NUMBER_OF_JOINTS];
+
+             // Retrieve state
              memcpy(data, self.getCommandedJointPosition(),
                     KUKA::FRI::LBRState::NUMBER_OF_JOINTS * sizeof(double));
+
+             // Parse: double -> float
+             for (int i = 0; i < KUKA::FRI::LBRState::NUMBER_OF_JOINTS; i++)
+               dataf[i] = (float)data[i];
+
              return py::array_t<float>({KUKA::FRI::LBRState::NUMBER_OF_JOINTS},
-                                       data);
+                                       dataf);
            })
 #elif FRI_VERSION_MAJOR == 2
       // .def("getMeasuredCartesianPose",
