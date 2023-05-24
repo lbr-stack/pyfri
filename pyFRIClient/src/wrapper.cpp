@@ -351,7 +351,7 @@ PYBIND11_MODULE(pyFRIClient, m) {
              }
              auto buf = values.request();
              const double *data = static_cast<double *>(buf.ptr);
-             self.setTorque(data);
+             self.setWrench(data);
            })
       .def("setTorque",
            [](KUKA::FRI::LBRCommand &self, py::array_t<double> values) {
