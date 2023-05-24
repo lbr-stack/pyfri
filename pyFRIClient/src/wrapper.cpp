@@ -1,5 +1,6 @@
 // Standard library
 #include <cstdio>
+#include <memory>
 #include <string>
 
 // NumPy: https://numpy.org/
@@ -15,8 +16,6 @@
 #include "friLBRClient.h"
 #include "friUdpConnection.h"
 #include "fri_config.h"
-
-#include <memory>
 
 // Make LBRClient a Python abstract class
 class PyLBRClient : public KUKA::FRI::LBRClient {
@@ -339,7 +338,21 @@ PYBIND11_MODULE(pyFRIClient, m) {
              const double *data = static_cast<double *>(buf.ptr);
              self.setJointPosition(data);
            })
-      // .def("setWrench", &KUKA::FRI::LBRCommand::setWrench)   // TODO
+      .def("setWrench",
+           [](KUKA::FRI::LBRCommand &self, py::array_t<double> values) {
+             if (values.ndim() != 1 ||
+                 PyArray_DIMS(values.ptr())[0] !=
+                     6 // [F_x, F_y, F_z, tau_A, tau_B, tau_C]
+             ) {
+               throw std::runtime_error(
+                   "Input array must have shape (" +
+                   std::to_string(KUKA::FRI::LBRState::NUMBER_OF_JOINTS) +
+                   ",)!");
+             }
+             auto buf = values.request();
+             const double *data = static_cast<double *>(buf.ptr);
+             self.setWrench(data);
+           })
       .def("setTorque",
            [](KUKA::FRI::LBRCommand &self, py::array_t<double> values) {
              if (values.ndim() != 1 ||

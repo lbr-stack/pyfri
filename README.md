@@ -84,3 +84,4 @@ Then turn on the robot, connect your laptop via ethernet, and follow these steps
 2. Run examples
    - `$ python LBRJointSineOverlay.py`
    - `$ python LBRTorqueSineOverlay.py`
+   - `$ python LBRWrenchSineOverlay.py`
