@@ -354,8 +354,21 @@ PYBIND11_MODULE(pyFRIClient, m) {
              const double *data = static_cast<double *>(buf.ptr);
              self.setTorque(data);
            })
-      // .def("setCartesianPose") // TODO
-      // .def("setCartesianPoseAsMatrix")  // TODO
+      .def("setCartesianPose",
+           [](KUKA::FRI::LBRCommand &self, py::array_t<double> values) {
+             // TODO
+             // Currently, FRI Cartesian Overlay is not supported by
+             // FRI-Client-SDK_Python.
+             throw std::runtime_error("setCartesianPose is not yet exposed.");
+           })
+      .def("setCartesianPoseAsMatrix",
+           [](KUKA::FRI::LBRCommand &self, py::array_t<double> values) {
+             // TODO
+             // Currently, FRI Cartesian Overlay is not supported by
+             // FRI-Client-SDK_Python.
+             throw std::runtime_error(
+                 "setCartesianPoseAsMatrix is not yet exposed.");
+           })
       .def("setBooleanIOValue", &KUKA::FRI::LBRCommand::setBooleanIOValue)
       .def("setDigitalIOValue", &KUKA::FRI::LBRCommand::setDigitalIOValue)
       .def("setAnalogIOValue", &KUKA::FRI::LBRCommand::setAnalogIOValue);
