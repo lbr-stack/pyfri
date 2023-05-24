@@ -305,7 +305,13 @@ PYBIND11_MODULE(pyFRIClient, m) {
       //      })
       .def("getMeasuredRedundancyValue",
            &KUKA::FRI::LBRState::getMeasuredRedundancyValue)
-      .def("getIpoRedundancyValue", &KUKA::FRI::LBRState::getIpoRedundancyValue)
+      .def("getIpoRedundancyValue",
+	   [](KUKA::FRI::LBRState &self) {
+	     // TODO
+	     // Currently, FRI Cartesian Overlay is not supported by FRI-Client-SDK_Python.
+	     // IPO redundancy value not available when FRI Cartesian Overlay is not active.
+	     throw std::runtime_error("getIpoRedundancyValue is not yet exposed.");
+	   })
       .def("getRedundancyStrategy",
            &KUKA::FRI::LBRState::getRedundancyStrategy)
 #endif
