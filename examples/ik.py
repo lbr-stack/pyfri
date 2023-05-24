@@ -68,7 +68,7 @@ class IK:
         builder.integrate_model_states(self.name, 1, dt)
 
         # Constraint: joint limits
-        builder.enforce_model_limits(self.name)
+        builder.enforce_model_limits(self.name, safe_frac=0.95)
 
         # Cost: minimize joint velocity
         builder.add_cost_term("min_joint_vel", 0.01 * optas.sumsqr(dq))
