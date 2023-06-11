@@ -1,4 +1,5 @@
 import optas
+from robot import load_robot
 
 
 class IK:
@@ -35,11 +36,8 @@ class IK:
 
     def __init__(self, lbr_med_num):
         # Setup robot
-        xacro_file_name = f"robots/med{lbr_med_num}.urdf.xacro"
         ee_link = "lbr_link_ee"
-        self.robot = optas.RobotModel(
-            xacro_filename=xacro_file_name, time_derivs=[0, 1]
-        )
+        self.robot = load_robot(lbr_med_num, [0, 1])
         self.name = self.robot.get_name()
 
         # Setup builder
@@ -75,7 +73,7 @@ class IK:
 
         # Setup solver
         opt = builder.build()
-        self.solver = optas.CasADiSolver(opt).setup('qpoases')
+        self.solver = optas.CasADiSolver(opt).setup("qpoases")
         self.solution = None
 
     def __call__(self, qc, vg, dt):
