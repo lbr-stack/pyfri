@@ -6,6 +6,11 @@ from admittance import AdmittanceController
 
 import numpy as np
 
+if fri.FRI_VERSION_MAJOR == 1:
+    POSITION = fri.EClientCommandMode.POSITION
+elif fri.FRI_VERSION_MAJOR == 2:
+    POSITION = fri.EClientCommandMode.JOINT_POSITION
+
 
 class HandGuideClient(fri.LBRClient):
     def __init__(self, controller):
@@ -19,10 +24,22 @@ class HandGuideClient(fri.LBRClient):
         print(f"State changed from {old_state} to {new_state}")
 
     def waitForCommand(self):
+        if self.robotState().getClientCommandMode() != POSITION:
+            print(
+                f"[ERROR] hand guide example requires {POSITION.name} client command mode"
+            )
+            raise SystemExit
+
         self.qc = self.robotState().getIpoJointPosition()
         self.robotCommand().setJointPosition(self.qc)
 
     def command(self):
+        if self.robotState().getClientCommandMode() != POSITION:
+            print(
+                f"[ERROR] hand guide example requires {POSITION.name} client command mode"
+            )
+            raise SystemExit
+
         # Get robot state
         te = self.robotState().getExternalTorque()
         dt = self.robotState().getSampleTime()
@@ -70,6 +87,9 @@ def main():
                 break
 
     except KeyboardInterrupt:
+        pass
+
+    except SystemExit:
         pass
 
     finally:
