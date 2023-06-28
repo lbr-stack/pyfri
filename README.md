@@ -1,7 +1,7 @@
 # FRI-Client-SDK_Python
 
 KUKA Fast Robot Interface Python SDK.
-The code provided in this repository, provides Python bindings for the FRI Client SDK C++.
+The code in this repository, provides Python bindings for the FRI Client SDK C++.
 The interface has been designed to be as similar as possible to the documentation provided by KUKA.
 
 There is one difference users of the Python bindings should be aware.
