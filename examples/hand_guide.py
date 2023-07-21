@@ -1,6 +1,7 @@
 import sys
 import math
 import pyFRIClient as fri
+from pyFRIClient.tools import WrenchEstimatorTaskOffset, WrenchEstimatorJointOffset
 
 from admittance import AdmittanceController
 
@@ -16,6 +17,17 @@ class HandGuideClient(fri.LBRClient):
     def __init__(self, controller):
         super().__init__()
         self.controller = controller
+        self.wrench_estimator = WrenchEstimatorTaskOffset(
+            self,
+            self.controller.robot,
+            self.controller.ee_link,
+            smooth=0.02,
+        )
+        # self.wrench_estimator = WrenchEstimatorJointOffset(
+        #     self,
+        #     self.controller.ee_link,
+        #     smooth=0.02,
+        # )
 
     def monitor(self):
         pass
@@ -30,22 +42,22 @@ class HandGuideClient(fri.LBRClient):
             )
             raise SystemExit
 
-        self.qc = self.robotState().getIpoJointPosition()
-        self.robotCommand().setJointPosition(self.qc)
+        self.wrench_estimator.update()
+        self.q = self.robotState().getIpoJointPosition()
+        self.robotCommand().setJointPosition(self.q.astype(np.float32))
 
     def command(self):
-        if self.robotState().getClientCommandMode() != POSITION:
-            print(
-                f"[ERROR] hand guide example requires {POSITION.name} client command mode"
-            )
-            raise SystemExit
+        if not self.wrench_estimator.ready():
+            self.wrench_estimator.update()
+            self.robotCommand().setJointPosition(self.q.astype(np.float32))
+            return
 
         # Get robot state
-        te = self.robotState().getExternalTorque()
+        wr = self.wrench_estimator.get_wrench_estimate()
         dt = self.robotState().getSampleTime()
 
         # Compute goal using admittance controller
-        qg = self.controller(self.qc, te, dt)
+        qg = self.controller(self.qc, wr, dt)
 
         # Command robot
         self.robotCommand().setJointPosition(qg.astype(np.float32))
@@ -65,8 +77,7 @@ def main():
         print("You need to supply a LBR Med version number. Either 7 or 14.")
         return 1
 
-    con_ee_z = True
-    controller = AdmittanceController(lbr_med_num, con_ee_z)
+    controller = AdmittanceController(lbr_med_num)
     client = HandGuideClient(controller)
 
     app = fri.ClientApplication(client)
