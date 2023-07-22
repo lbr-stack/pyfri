@@ -119,6 +119,20 @@ class TaskSpaceStateEstimator:
         J = self._J(q)
         return J @ dq
 
+    def get_end_effector_acceleration(self):
+        q = self._joint_space_state_estimator._q.copy()
+        qp = self._joint_space_state_estimator._qp.copy()
+
+        dq = self._joint_space_state_estimator._dq.copy()
+        dqp = self._joint_space_state_estimator._dqp.copy()
+
+        v = self._J(q) @ dq
+        vp = self._J(qp) @ dqp
+
+        dt = self._joint_space_state_estimator._dt
+
+        return (v - vp) / dt
+
 
 #
 # Estimate wrench at a given tip link.
