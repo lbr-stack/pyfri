@@ -5,7 +5,7 @@
 
 cmake_minimum_required(VERSION 3.16.3)
 
-project(_pyFRIClient)
+project(_pyFRI)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(FRI_BUILD_EXAMPLES OFF)
@@ -13,6 +13,6 @@ set(FRI_BUILD_EXAMPLES OFF)
 add_subdirectory(pybind)
 add_subdirectory(FRI-Client-SDK_Cpp)
 
-pybind11_add_module(_pyFRIClient ${CMAKE_CURRENT_SOURCE_DIR}/pyFRIClient/src/wrapper.cpp)
+pybind11_add_module(_pyFRI ${CMAKE_CURRENT_SOURCE_DIR}/pyFRI/src/wrapper.cpp)
 
-target_link_libraries(_pyFRIClient PRIVATE FRIClient)
+target_link_libraries(_pyFRI PRIVATE FRIClient)
