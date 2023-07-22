@@ -7,6 +7,19 @@ import numpy as np
 
 
 class JointStateEstimator:
+
+    """
+
+    JointStateEstimator
+    ===================
+
+    The JointStateEstimator class keeps track of the joint position,
+    velocity, and acceleration using the finite difference method. The
+    joint velocities and accelerations are estimated using a window of
+    the previous three joint positions.
+
+    """
+
     def __init__(
         self,
         client,
@@ -19,6 +32,7 @@ class JointStateEstimator:
         self._dt = None
         self._dq = None
         self._ddq = None
+        self._dqp = None
 
         # Monkey patch update_window into command method
         orig_command = self._client.command
@@ -45,9 +59,9 @@ class JointStateEstimator:
         self._qp = self._q.copy()
         self._q = q.copy()
 
-        dqp = (self._qp - self._qpp) / self._dt
+        self._dqp = (self._qp - self._qpp) / self._dt
         self._dq = (self._q - self._qp) / self._dt
-        self._ddq = (self._dq - dqp) / self._dt
+        self._ddq = (self._dq - self._dqp) / self._dt
 
     def get_position(self):
         return self._q.copy()
@@ -60,6 +74,18 @@ class JointStateEstimator:
 
 
 class TaskSpaceStateEstimator:
+
+    """
+
+    TaskSpaceStateEstimator
+    =======================
+
+    The TaskSpaceStateEstimator class allows you to estimate a given
+    end-effector transform (position and orientation), velocity, and
+    acceleration.
+
+    """
+
     def __init__(
         self, joint_space_state_estimator, robot_model, ee_link, base_link=None
     ):
@@ -113,9 +139,6 @@ class WrenchEstimator(abc.ABC):
     measurements. How that offset is estimated is implemented by the
     respective sub-classes.
 
-    Additionally, a smoothing exponential filter can be applied (by
-    default the filter is not applied).
-
     """
 
     _rcond = 0.05  # Cutoff for small singular values in pseudo-inverse calculation.
@@ -127,11 +150,9 @@ class WrenchEstimator(abc.ABC):
         tip_link,
         base_link=None,
         n_data=100,
-        smooth=1.0,
     ):
         self._client = client
         self._n_data = n_data
-        self._smooth = smooth
         if base_link is None:
             self._jacobian = robot_model.get_global_link_geometric_jacobian_function(
                 tip_link,
@@ -170,19 +191,8 @@ class WrenchEstimator(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def _get_wrench_estimate(self):
-        pass
-
     def get_wrench_estimate(self):
-        # Get current wrench estimate
-        wrench_estimate = self._get_wrench_estimate()
-
-        # Apply exponential filter to wrench estimate
-        self._wrench_estimate = (
-            self._smooth * wrench_estimate
-            + (1.0 - self._smooth) * self._wrench_estimate
-        )
-        return self._wrench_estimate.copy()
+        pass
 
 
 class WrenchEstimatorJointOffset(WrenchEstimator):
@@ -200,7 +210,7 @@ class WrenchEstimatorJointOffset(WrenchEstimator):
     def _update_data(self):
         self._data.append(self._tau_ext().tolist())
 
-    def _get_wrench_estimate(self):
+    def get_wrench_estimate(self):
         tau_ext = self._tau_ext() - np.mean(self._data, axis=0)
         Jinv = self._inverse_jacobian()
         return Jinv.T @ tau_ext
@@ -222,7 +232,7 @@ class WrenchEstimatorTaskOffset(WrenchEstimator):
         f_ext = self._inverse_jacobian().T @ self._tau_ext()
         self._data.append(f_ext.flatten().tolist())
 
-    def _get_wrench_estimate(self):
+    def get_wrench_estimate(self):
         return self._inverse_jacobian().T @ self._tau_ext() - np.mean(
             self._data, axis=0
         )
