@@ -1,6 +1,97 @@
 import abc
-
 import numpy as np
+
+#
+# Joint state estimator
+#
+
+
+class JointStateEstimator:
+    def __init__(
+        self,
+        client,
+    ):
+        # Set class attributes/variables
+        self._client = client
+        self._q = None
+        self._qp = None
+        self._qpp = None
+        self._dt = None
+        self._dq = None
+        self._ddq = None
+
+        # Monkey patch update_window into command method
+        orig_command = self._client.command
+
+        def command(*args, **kwargs):
+            self.update_window()
+            orig_command(*args, **kwargs)
+
+        self._client.command = command
+
+    def update_window(self):
+        self._dt = self._client.robotState().getSampleTime()
+        q = self._client.robotState().getMeasuredJointPosition()
+
+        if self._qp is None:
+            self._qp = q.copy()
+            if self._filter_q is not None:
+                self._filter_q.set_initial(q)
+
+        if self._qpp is None:
+            self._qpp = q.copy()
+
+        self._qpp = self._qp.copy()
+        self._qp = self._q.copy()
+        self._q = q.copy()
+
+        dqp = (self._qp - self._qpp) / self._dt
+        self._dq = (self._q - self._qp) / self._dt
+        self._ddq = (self._dq - dqp) / self._dt
+
+    def get_position(self):
+        return self._q.copy()
+
+    def get_velocity(self):
+        return self._dq.copy()
+
+    def get_acceleration(self):
+        return self._ddq.copy()
+
+
+class TaskSpaceStateEstimator:
+    def __init__(
+        self, joint_space_state_estimator, robot_model, ee_link, base_link=None
+    ):
+        self._joint_space_state_estimator = joint_space_state_estimator
+
+        # Retrieve kinematics models function
+        if base_link is None:
+            self._T = robot_model.get_global_link_transform_function(
+                ee_link, numpy_output=True
+            )
+            self._J = robot_model.get_global_link_geometric_jacobian_function(
+                ee_link, numpy_output=True
+            )
+        elif isinstance(base_link, str):
+            self._T = robot_model.get_link_transform_function(
+                ee_link, base_link, numpy_output=True
+            )
+            self._J = robot_model.get_link_geometric_jacobian_function(
+                ee_link, base_link, numpy_output=True
+            )
+        else:
+            raise ValueError(f"{base_link=} was not recognized")
+
+    def get_end_effector_transform(self):
+        q = self._joint_space_state_estimator.get_joint_position()
+        return self._T(q)
+
+    def get_end_effector_velocity(self):
+        q = self._joint_space_state_estimator.get_joint_position()
+        dq = self._joint_space_state_estimator.get_joint_velocity()
+        J = self._J(q)
+        return J @ dq
 
 
 #
@@ -32,7 +123,7 @@ class WrenchEstimator(abc.ABC):
     def __init__(
         self,
         client,
-        robot_model,            
+        robot_model,
         tip_link,
         base_link=None,
         n_data=100,
@@ -55,7 +146,6 @@ class WrenchEstimator(abc.ABC):
         else:
             raise ValueError(f"{base_link=} is not recognized.")
         self._data = []
-        self._offset = None
         self._wrench_estimate = np.zeros(6)
 
     def _q(self):
@@ -74,8 +164,6 @@ class WrenchEstimator(abc.ABC):
         n_data = len(self._data)
         if n_data < self._n_data:
             self._update_data()
-        elif (n_data == self._n_data) and (self._offset is None):
-            self._offset = np.mean(self._data, axis=0)
 
     @abc.abstractmethod
     def _update_data(self):
@@ -113,7 +201,7 @@ class WrenchEstimatorJointOffset(WrenchEstimator):
         self._data.append(self._tau_ext().tolist())
 
     def _get_wrench_estimate(self):
-        tau_ext = self._tau_ext() - self._offset
+        tau_ext = self._tau_ext() - np.mean(self._data, axis=0)
         Jinv = self._inverse_jacobian()
         return Jinv.T @ tau_ext
 
@@ -135,4 +223,6 @@ class WrenchEstimatorTaskOffset(WrenchEstimator):
         self._data.append(f_ext.flatten().tolist())
 
     def _get_wrench_estimate(self):
-        return self._inverse_jacobian().T @ self._tau_ext() - self._offset
+        return self._inverse_jacobian().T @ self._tau_ext() - np.mean(
+            self._data, axis=0
+        )
