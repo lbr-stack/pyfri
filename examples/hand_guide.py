@@ -1,7 +1,7 @@
 import sys
 import math
-import pyFRIClient as fri
-from pyFRIClient.tools import WrenchEstimatorTaskOffset, WrenchEstimatorJointOffset
+import pyFRI as fri
+from pyFRI.tools import WrenchEstimatorTaskOffset, WrenchEstimatorJointOffset
 
 from admittance import AdmittanceController
 

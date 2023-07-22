@@ -1,6 +1,6 @@
 import sys
 import math
-import pyFRIClient as fri
+import pyFRI as fri
 
 import numpy as np
 

@@ -2,7 +2,7 @@ import sys
 from collections import OrderedDict
 
 # FRI Client: https://github.com/cmower/FRI-Client-SDK_Python
-import pyFRIClient as fri
+import pyFRI as fri
 
 # PyGame: https://www.pygame.org/news
 import pygame
