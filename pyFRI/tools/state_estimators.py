@@ -24,12 +24,12 @@ class JointStateEstimator:
         orig_command = self._client.command
 
         def command(*args, **kwargs):
-            self.update_window()
+            self._update_window()
             orig_command(*args, **kwargs)
 
         self._client.command = command
 
-    def update_window(self):
+    def _update_window(self):
         self._dt = self._client.robotState().getSampleTime()
         q = self._client.robotState().getMeasuredJointPosition()
 
