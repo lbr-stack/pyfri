@@ -150,7 +150,7 @@ class CMakeBuild(build_ext):
 
 setup(
     name="pyFRI",
-    version="1.0.0",
+    version="1.1.0",
     author="Christopher E. Mower",
     author_email="christopher.mower@kcl.ac.uk",
     description="Python bindings for the FRI Client SDK library.",
