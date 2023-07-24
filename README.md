@@ -87,4 +87,7 @@ Then turn on the robot, connect your laptop via ethernet, and follow these steps
    - `$ python LBRWrenchSineOverlay.py # based on examples provided by KUKA`
    - `$ python joint_teleop.py`
    - `$ python task_teleop.py`
-   - `$ python move_to.py`
+
+# Documentation
+
+You can find documentation for `pyFRI` in the [wiki](https://github.com/cmower/FRI-Client-SDK_Python/wiki).
