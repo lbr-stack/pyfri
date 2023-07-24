@@ -3,7 +3,7 @@ import re
 import sys
 import subprocess
 from pathlib import Path
-from setuptools import Extension, setup
+from setuptools import Extension, setup, find_packages
 from setuptools.command.build_ext import build_ext
 
 
@@ -149,13 +149,14 @@ class CMakeBuild(build_ext):
 
 
 setup(
-    name="pyFRIClient",
+    name="pyFRI",
     version="1.0.0",
     author="Christopher E. Mower",
     author_email="christopher.mower@kcl.ac.uk",
     description="Python bindings for the FRI Client SDK library.",
     long_description="",
-    ext_modules=[CMakeExtension("pyFRIClient")],
+    packages=find_packages(),
+    ext_modules=[CMakeExtension("_pyFRI")],
     install_requires=["numpy", "pygame", "pyoptas"],
     cmdclass={"build_ext": CMakeBuild},
     python_requires=">=3.8",

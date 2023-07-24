@@ -1,6 +1,14 @@
 import sys
 import math
-import pyFRIClient as fri
+import argparse
+import pyFRI as fri
+from pyFRI.tools.state_estimators import (
+    JointStateEstimator,
+    FRIExternalTorqueEstimator,
+    WrenchEstimatorTaskOffset,
+)
+from pyFRI.tools.filters import ExponentialStateFilter
+
 
 from admittance import AdmittanceController
 
@@ -13,9 +21,22 @@ elif fri.FRI_VERSION_MAJOR == 2:
 
 
 class HandGuideClient(fri.LBRClient):
-    def __init__(self, controller):
+    def __init__(self, lbr_ver):
         super().__init__()
-        self.controller = controller
+        self.controller = AdmittanceController(lbr_ver)
+        self.joint_state_estimator = JointStateEstimator(self)
+        self.external_torque_estimator = FRIExternalTorqueEstimator(self)
+        self.wrench_estimator = WrenchEstimatorTaskOffset(
+            self,
+            self.joint_state_estimator,
+            self.external_torque_estimator,
+            self.controller.robot,
+            self.controller.ee_link,
+        )
+        self.wrench_filter = ExponentialStateFilter()
+
+    def command_position(self):
+        self.robotCommand().setJointPosition(self.q.astype(np.float32))
 
     def monitor(self):
         pass
@@ -30,50 +51,64 @@ class HandGuideClient(fri.LBRClient):
             )
             raise SystemExit
 
-        self.qc = self.robotState().getIpoJointPosition()
-        self.robotCommand().setJointPosition(self.qc)
+        self.wrench_estimator.update()
+        self.q = self.robotState().getIpoJointPosition()
+        self.command_position()
 
     def command(self):
-        if self.robotState().getClientCommandMode() != POSITION:
-            print(
-                f"[ERROR] hand guide example requires {POSITION.name} client command mode"
-            )
-            raise SystemExit
+        if not self.wrench_estimator.ready():
+            self.wrench_estimator.update()
+            self.robotCommand().setJointPosition(self.q.astype(np.float32))
+            return
 
         # Get robot state
-        te = self.robotState().getExternalTorque()
+        wr = self.wrench_estimator.get_wrench()
         dt = self.robotState().getSampleTime()
 
+        # Filter wrench
+        wf = self.wrench_filter.filter(wr)
+
         # Compute goal using admittance controller
-        qg = self.controller(self.qc, te, dt)
+        self.q = self.controller(self.q, wf, dt)
 
         # Command robot
-        self.robotCommand().setJointPosition(qg.astype(np.float32))
-        self.qc = qg.copy()
+        self.command_position()
+
+
+def get_arguments():
+    parser = argparse.ArgumentParser(description="LRBJointSineOverlay example.")
+    parser.add_argument(
+        "--hostname",
+        dest="hostname",
+        default=None,
+        help="The hostname used to communicate with the KUKA Sunrise Controller.",
+    )
+    parser.add_argument(
+        "--port",
+        dest="port",
+        type=int,
+        default=30200,
+        help="The port number used to communicate with the KUKA Sunrise Controller.",
+    )
+    parser.add_argument(
+        "--lbr-ver",
+        dest="lbr_ver",
+        type=int,
+        choices=[7, 14],
+        required=True,
+        help="The KUKA LBR Med version number.",
+    )
+
+    return parser.parse_args()
 
 
 def main():
     print("Running FRI Version:", fri.FRI_VERSION)
 
-    try:
-        lbr_med_num = int(sys.argv[1])
-    except IndexError:
-        print("You need to supply a LBR Med version number. Either 7 or 14.")
-        return 1
-
-    if lbr_med_num not in {7, 14}:
-        print("You need to supply a LBR Med version number. Either 7 or 14.")
-        return 1
-
-    con_ee_z = True
-    controller = AdmittanceController(lbr_med_num, con_ee_z)
-    client = HandGuideClient(controller)
-
+    args = get_arguments()
+    client = HandGuideClient(args.lbr_ver)
     app = fri.ClientApplication(client)
-
-    port = 30200
-    hostname = None  # i.e. use default hostname
-    success = app.connect(port, hostname)
+    success = app.connect(args.port, args.hostname)
 
     if not success:
         print("Connection to KUKA Sunrise controller failed.")

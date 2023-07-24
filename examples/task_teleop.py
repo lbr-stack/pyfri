@@ -1,8 +1,9 @@
 import sys
+import argparse
 from collections import OrderedDict
 
 # FRI Client: https://github.com/cmower/FRI-Client-SDK_Python
-import pyFRIClient as fri
+import pyFRI as fri
 
 # PyGame: https://www.pygame.org/news
 import pygame
@@ -128,29 +129,42 @@ class TeleopClient(fri.LBRClient):
             self.robotCommand().setTorque(self.torques.astype(np.float32))
 
 
+def get_arguments():
+    parser = argparse.ArgumentParser(description="LRBJointSineOverlay example.")
+    parser.add_argument(
+        "--hostname",
+        dest="hostname",
+        default=None,
+        help="The hostname used to communicate with the KUKA Sunrise Controller.",
+    )
+    parser.add_argument(
+        "--port",
+        dest="port",
+        type=int,
+        default=30200,
+        help="The port number used to communicate with the KUKA Sunrise Controller.",
+    )
+    parser.add_argument(
+        "--lbr-ver",
+        dest="lbr_ver",
+        type=int,
+        choices=[7, 14],
+        required=True,
+        help="The KUKA LBR Med version number.",
+    )
+
+    return parser.parse_args()
+
+
 def main():
     print("Running FRI Version:", fri.FRI_VERSION)
 
-    try:
-        lbr_med_num = int(sys.argv[1])
-    except IndexError:
-        print("You need to supply a LBR Med version number. Either 7 or 14.")
-        return 1
-
-    if lbr_med_num not in {7, 14}:
-        print("You need to supply a LBR Med version number. Either 7 or 14.")
-        return 1
-
-    ik = IK(lbr_med_num)
-
+    args = get_arguments()
+    ik = IK(args.lbr_ver)
     keyboard = Keyboard()
-
     client = TeleopClient(ik, keyboard)
     app = fri.ClientApplication(client)
-
-    port = 30200
-    hostname = None  # i.e. use default hostname
-    success = app.connect(port, hostname)
+    success = app.connect(args.port, args.hostname)
 
     if not success:
         print("Connection to KUKA Sunrise controller failed.")

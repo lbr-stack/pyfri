@@ -1,6 +1,7 @@
 import sys
 import math
-import pyFRIClient as fri
+import argparse
+import pyFRI as fri
 
 import numpy as np
 
@@ -55,20 +56,63 @@ class LBRWrenchSineOverlayClient(fri.LBRClient):
             self.robotCommand().setWrench(self.wrench)
 
 
+def get_arguments():
+    parser = argparse.ArgumentParser(description="LRBJointSineOverlay example.")
+    parser.add_argument(
+        "--hostname",
+        dest="hostname",
+        default=None,
+        help="The hostname used to communicate with the KUKA Sunrise Controller.",
+    )
+    parser.add_argument(
+        "--port",
+        dest="port",
+        type=int,
+        default=30200,
+        help="The port number used to communicate with the KUKA Sunrise Controller.",
+    )
+    parser.add_argument(
+        "--frequencyx",
+        dest="frequencyX",
+        type=float,
+        default=0.25,
+        help="The frequency of sine wave in x-axis.",
+    )
+    parser.add_argument(
+        "--frequencyy",
+        dest="frequencyY",
+        type=float,
+        default=0.25,
+        help="The frequency of sine wave in y-axis.",
+    )
+    parser.add_argument(
+        "--amplitudex",
+        dest="amplitudeX",
+        type=float,
+        default=5.0,
+        help="The amplitude of sine wave in x-axis.",
+    )
+    parser.add_argument(
+        "--amplitudey",
+        dest="amplitudeY",
+        type=float,
+        default=5.0,
+        help="The amplitude of sine wave in y-axis.",
+    )
+
+    return parser.parse_args()
+
+
 def main():
     print("Running FRI Version:", fri.FRI_VERSION)
 
-    frequencyX = 0.25
-    frequencyY = 0.25
-    amplitudeX = 5.0
-    amplitudeY = 5.0
-    client = LBRWrenchSineOverlayClient(frequencyX, frequencyY, amplitudeX, amplitudeY)
-
+    args = get_arguments()
+    print(args)
+    client = LBRWrenchSineOverlayClient(
+        args.frequencyX, args.frequencyY, args.amplitudeX, args.amplitudeY
+    )
     app = fri.ClientApplication(client)
-
-    port = 30200
-    hostname = None  # i.e. use default hostname
-    success = app.connect(port, hostname)
+    success = app.connect(args.port, args.hostname)
 
     if not success:
         print("Connection to KUKA Sunrise controller failed.")
