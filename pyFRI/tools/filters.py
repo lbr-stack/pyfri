@@ -3,7 +3,7 @@ import numpy as np
 from collections import deque
 
 
-class JointStateFilter(abc.ABC):
+class StateFilter(abc.ABC):
     def __init__(self, window_size):
         self._window_size = window_size
         self.reset()
@@ -19,7 +19,7 @@ class JointStateFilter(abc.ABC):
         pass
 
 
-class ExponentialJointStateFilter(JointStateFilter):
+class ExponentialStateFilter(StateFilter):
     def __init__(self, smooth=0.02):
         super().__init__(1)
         self._smooth = smooth
@@ -33,7 +33,7 @@ class ExponentialJointStateFilter(JointStateFilter):
         return xf
 
 
-class MovingAverageFilter(JointStateFilter):
+class MovingAverageFilter(StateFilter):
     def filter(self, x):
         self.append(x)
         return np.mean(self._window, axis=0)
