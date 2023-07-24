@@ -47,7 +47,7 @@ class AdmittanceController:
         solver_options = {"printLevel": "none"}
         self.solver = optas.CasADiSolver(opt).setup("qpoases", solver_options)
         self.solution = None
-        self.gain = np.array([0.001, 0.001, 0.001, 0.001, 0.001, 0.001])
+        self.gain = np.array([0.05, 0.05, 0.05, 0.3, 0.3, 0.3])
         self.vlim = np.concatenate(([0.2, 0.2, 0.2], np.deg2rad([40] * 3)))
 
     def __call__(self, qc, wr, dt):

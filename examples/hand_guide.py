@@ -1,7 +1,14 @@
 import sys
 import math
+import argparse
 import pyFRI as fri
-from pyFRI.tools import WrenchEstimatorTaskOffset, WrenchEstimatorJointOffset
+from pyFRI.tools.state_estimators import (
+    JointStateEstimator,
+    FRIExternalTorqueEstimator,
+    WrenchEstimatorTaskOffset,
+)
+from pyFRI.tools.filters import ExponentialStateFilter
+
 
 from admittance import AdmittanceController
 
@@ -14,20 +21,22 @@ elif fri.FRI_VERSION_MAJOR == 2:
 
 
 class HandGuideClient(fri.LBRClient):
-    def __init__(self, controller):
+    def __init__(self, lbr_ver):
         super().__init__()
-        self.controller = controller
+        self.controller = AdmittanceController(lbr_ver)
+        self.joint_state_estimator = JointStateEstimator(self)
+        self.external_torque_estimator = FRIExternalTorqueEstimator(self)
         self.wrench_estimator = WrenchEstimatorTaskOffset(
             self,
+            self.joint_state_estimator,
+            self.external_torque_estimator,
             self.controller.robot,
             self.controller.ee_link,
-            smooth=0.02,
         )
-        # self.wrench_estimator = WrenchEstimatorJointOffset(
-        #     self,
-        #     self.controller.ee_link,
-        #     smooth=0.02,
-        # )
+        self.wrench_filter = ExponentialStateFilter()
+
+    def command_position(self):
+        self.robotCommand().setJointPosition(self.q.astype(np.float32))
 
     def monitor(self):
         pass
@@ -44,7 +53,7 @@ class HandGuideClient(fri.LBRClient):
 
         self.wrench_estimator.update()
         self.q = self.robotState().getIpoJointPosition()
-        self.robotCommand().setJointPosition(self.q.astype(np.float32))
+        self.command_position()
 
     def command(self):
         if not self.wrench_estimator.ready():
@@ -53,38 +62,53 @@ class HandGuideClient(fri.LBRClient):
             return
 
         # Get robot state
-        wr = self.wrench_estimator.get_wrench_estimate()
+        wr = self.wrench_estimator.get_wrench()
         dt = self.robotState().getSampleTime()
 
+        # Filter wrench
+        wf = self.wrench_filter.filter(wr)
+
         # Compute goal using admittance controller
-        qg = self.controller(self.qc, wr, dt)
+        self.q = self.controller(self.q, wf, dt)
 
         # Command robot
-        self.robotCommand().setJointPosition(qg.astype(np.float32))
-        self.qc = qg.copy()
+        self.command_position()
+
+
+def get_arguments():
+    parser = argparse.ArgumentParser(description="LRBJointSineOverlay example.")
+    parser.add_argument(
+        "--hostname",
+        dest="hostname",
+        default=None,
+        help="The hostname used to communicate with the KUKA Sunrise Controller.",
+    )
+    parser.add_argument(
+        "--port",
+        dest="port",
+        type=int,
+        default=30200,
+        help="The port number used to communicate with the KUKA Sunrise Controller.",
+    )
+    parser.add_argument(
+        "--lbr-ver",
+        dest="lbr_ver",
+        type=int,
+        choices=[7, 14],
+        required=True,
+        help="The KUKA LBR Med version number.",
+    )
+
+    return parser.parse_args()
 
 
 def main():
     print("Running FRI Version:", fri.FRI_VERSION)
 
-    try:
-        lbr_med_num = int(sys.argv[1])
-    except IndexError:
-        print("You need to supply a LBR Med version number. Either 7 or 14.")
-        return 1
-
-    if lbr_med_num not in {7, 14}:
-        print("You need to supply a LBR Med version number. Either 7 or 14.")
-        return 1
-
-    controller = AdmittanceController(lbr_med_num)
-    client = HandGuideClient(controller)
-
+    args = get_arguments()
+    client = HandGuideClient(args.lbr_ver)
     app = fri.ClientApplication(client)
-
-    port = 30200
-    hostname = None  # i.e. use default hostname
-    success = app.connect(port, hostname)
+    success = app.connect(args.port, args.hostname)
 
     if not success:
         print("Connection to KUKA Sunrise controller failed.")

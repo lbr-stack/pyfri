@@ -1,5 +1,6 @@
 import sys
 import math
+import argparse
 import pyFRI as fri
 
 import numpy as np
@@ -29,17 +30,13 @@ class LBRTorqueSineOverlayClient(fri.LBRClient):
             )
 
     def waitForCommand(self):
-        self.robotCommand().setJointPosition(
-            self.robotState().getIpoJointPosition()
-        )
+        self.robotCommand().setJointPosition(self.robotState().getIpoJointPosition())
 
         if self.robotState().getClientCommandMode() == fri.EClientCommandMode.TORQUE:
             self.robotCommand().setTorque(self.torques)
 
     def command(self):
-        self.robotCommand().setJointPosition(
-            self.robotState().getIpoJointPosition()
-        )
+        self.robotCommand().setJointPosition(self.robotState().getIpoJointPosition())
 
         if self.robotState().getClientCommandMode() == fri.EClientCommandMode.TORQUE:
             offset = self.torque_ampl * math.sin(self.phi)
@@ -53,19 +50,60 @@ class LBRTorqueSineOverlayClient(fri.LBRClient):
             self.robotCommand().setTorque(self.torques)
 
 
+def get_arguments():
+    def cvt_joint_mask(value):
+        int_value = int(value)
+        if 0 <= int_value < 7:
+            return int_value
+        else:
+            raise argparse.ArgumentTypeError(f"{value} is not in the range [0, 7).")
+
+    parser = argparse.ArgumentParser(description="LRBJointSineOverlay example.")
+    parser.add_argument(
+        "--hostname",
+        dest="hostname",
+        default=None,
+        help="The hostname used to communicate with the KUKA Sunrise Controller.",
+    )
+    parser.add_argument(
+        "--port",
+        dest="port",
+        type=int,
+        default=30200,
+        help="The port number used to communicate with the KUKA Sunrise Controller.",
+    )
+    parser.add_argument(
+        "--joint-mask",
+        dest="joint_mask",
+        type=cvt_joint_mask,
+        default=3,
+        help="The joint to move.",
+    )
+    parser.add_argument(
+        "--freq-hz",
+        dest="freq_hz",
+        type=float,
+        default=0.25,
+        help="The frequency of the sine wave.",
+    )
+    parser.add_argument(
+        "--torque-amplitude",
+        dest="torque_amplitude",
+        type=float,
+        default=15.0,
+        help="Applitude of the sine wave.",
+    )
+
+    return parser.parse_args()
+
+
 def main():
     print("Running FRI Version:", fri.FRI_VERSION)
 
-    joint_mask = 3
-    freq_hz = 0.25
-    torque_amplitude = 15.0
-    client = LBRTorqueSineOverlayClient(joint_mask, freq_hz, torque_amplitude)
-
+    args = get_arguments()
+    client = LBRTorqueSineOverlayClient(args.joint_mask, args.freq_hz, args.torque_amplitude)
     app = fri.ClientApplication(client)
-
-    port = 30200
-    hostname = None  # i.e. use default hostname
-    success = app.connect(port, hostname)
+    success = app.connect(args.port, args.hostname)
 
     if not success:
         print("Connection to KUKA Sunrise controller failed.")

@@ -118,17 +118,33 @@ class TeleopClient(fri.LBRClient):
             self.robotCommand().setTorque(self.torques.astype(np.float32))
 
 
+def get_arguments():
+    parser = argparse.ArgumentParser(description="LRBJointSineOverlay example.")
+    parser.add_argument(
+        "--hostname",
+        dest="hostname",
+        default=None,
+        help="The hostname used to communicate with the KUKA Sunrise Controller.",
+    )
+    parser.add_argument(
+        "--port",
+        dest="port",
+        type=int,
+        default=30200,
+        help="The port number used to communicate with the KUKA Sunrise Controller.",
+    )
+
+    return parser.parse_args()
+
+
 def main():
     print("Running FRI Version:", fri.FRI_VERSION)
 
+    args = get_arguments()
     keyboard = Keyboard()
-
     client = TeleopClient(keyboard)
     app = fri.ClientApplication(client)
-
-    port = 30200
-    hostname = None  # i.e. use default hostname
-    success = app.connect(port, hostname)
+    success = app.connect(args.port, args.hostname)
 
     if not success:
         print("Connection to KUKA Sunrise controller failed.")
