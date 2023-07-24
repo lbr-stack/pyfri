@@ -1,5 +1,8 @@
 import abc
 import numpy as np
+from pyFRI import LBRState
+from collections import deque
+
 
 #
 # Joint state estimator
@@ -20,19 +23,19 @@ class JointStateEstimator:
 
     """
 
+    n_window = 3
+
     def __init__(
         self,
         client,
     ):
         # Set class attributes/variables
         self._client = client
-        self._q = None
-        self._qp = None
-        self._qpp = None
-        self._dt = None
-        self._dq = None
-        self._ddq = None
-        self._dqp = None
+        self._first_update = True
+        self.dt = None
+        self._q = deque([], maxlen=self.n_window)
+        self._dq = deque([], maxlen=self.n_window - 1)
+        self._ddq = deque([], maxlen=self.n_window - 2)
 
         # Monkey patch update_window into command method
         orig_command = self._client.command
@@ -43,34 +46,43 @@ class JointStateEstimator:
 
         self._client.command = command
 
+    def q(self, idx):
+        return np.array(self._q[idx])
+
+    def dq(self, idx):
+        return np.array(self._dq[idx])
+
+    def ddq(self, idx):
+        return np.array(self._ddq[idx])
+
     def _update_window(self):
-        self._dt = self._client.robotState().getSampleTime()
-        q = self._client.robotState().getMeasuredJointPosition()
+        # Retrieve state
+        self.dt = self._client.robotState().getSampleTime()
+        q = self._client.robotState().getMeasuredJointPosition().flatten().tolist()
 
-        if self._qp is None:
-            self._qp = q.copy()
-            if self._filter_q is not None:
-                self._filter_q.set_initial(q)
+        # Update window
+        self._q.append(q)
+        if self._first_update:
+            for _ in range(self.n_window):
+                self._q.append(q)
+                self._dq.append([0.0] * LBRState.NUMBER_OF_JOINTS)
+                self._ddq.append([0.0] * LBRState.NUMBER_OF_JOINTS)
+            self._first_update = False
 
-        if self._qpp is None:
-            self._qpp = q.copy()
+        dq = (self.q(-1) - self.q(-2)) / self.dt
+        self._dq.append(dq.tolist())
 
-        self._qpp = self._qp.copy()
-        self._qp = self._q.copy()
-        self._q = q.copy()
-
-        self._dqp = (self._qp - self._qpp) / self._dt
-        self._dq = (self._q - self._qp) / self._dt
-        self._ddq = (self._dq - self._dqp) / self._dt
+        ddq = (self.dq(-1) - self.dq(-2)) / self.dt
+        self._ddq.append(ddq.tolist())
 
     def get_position(self):
-        return self._q.copy()
+        return self.q(-1)
 
     def get_velocity(self):
-        return self._dq.copy()
+        return self.dq(-1)
 
     def get_acceleration(self):
-        return self._ddq.copy()
+        return self.ddq(-1)
 
 
 class TaskSpaceStateEstimator:
