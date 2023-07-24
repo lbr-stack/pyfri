@@ -21,7 +21,7 @@ ClientApplication app(connection, client);
 In Python, the equivalent code is as follows.
 
 ```python
-import pyFRIClient as fri
+import pyFRI as fri
 
 # ..setup client..
 
