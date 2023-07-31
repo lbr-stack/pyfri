@@ -1,5 +1,7 @@
 // Standard library
 #include <cstdio>
+#include <fstream>
+#include <iostream>
 #include <memory>
 #include <string>
 
@@ -43,20 +45,112 @@ class PyClientApplication {
 
 public:
   PyClientApplication(PyLBRClient &client) {
+    _step_index = 0;
+    _collect_data = false;
+    _client = client;
     _app = std::make_unique<KUKA::FRI::ClientApplication>(_connection, client);
+  }
+
+  void collect_data(std::string file_name) {
+
+    _collect_data = true;
+
+    // Open data file
+    _data_file.open(file_name);
+
+    // Write header
+    _data_file << "step"
+               << ",";
+    _data_file << "tsec"
+               << ",";
+    _data_file << "tnsec"
+               << ",";
+
+    for (unsigned int i = 0; i < KUKA::FRI::LBRState::NUMBER_OF_JOINTS; ++i)
+      _data_file << "mq" << i + 1 << ",";
+
+    for (unsigned int i = 0; i < KUKA::FRI::LBRState::NUMBER_OF_JOINTS; ++i)
+      _data_file << "miq" << i + 1 << ",";
+
+    for (unsigned int i = 0; i < KUKA::FRI::LBRState::NUMBER_OF_JOINTS; ++i)
+      _data_file << "mt" << i + 1 << ",";
+
+    for (unsigned int i = 0; i < KUKA::FRI::LBRState::NUMBER_OF_JOINTS; ++i)
+      _data_file << "met" << i + 1 << ",";
+
+    _data_file << "dt"
+               << "\n";
   }
 
   bool connect(const int port, char *const remoteHost = NULL) {
     return _app->connect(port, remoteHost);
   }
 
-  void disconnect() { _app->disconnect(); }
+  void disconnect() {
+    _app->disconnect();
+    _data_file.close();
+  }
 
-  bool step() { return _app->step(); }
+  bool step() {
+
+    // Step FRI
+    bool success = _app->step();
+
+    // Optionally record data
+    if (success && _collect_data)
+      _record_data();
+
+    _step_index++;
+
+    return success;
+  }
 
 private:
+  unsigned long long int _step_index;
+  bool _collect_data;
+  std::ofstream _data_file;
+  PyLBRClient _client;
   KUKA::FRI::UdpConnection _connection;
   std::unique_ptr<KUKA::FRI::ClientApplication> _app;
+
+  void _record_data() {
+
+    // Get state data
+    double mposition[KUKA::FRI::LBRState::NUMBER_OF_JOINTS];
+    memcpy(mposition, _client.robotState().getMeasuredJointPosition(),
+           KUKA::FRI::LBRState::NUMBER_OF_JOINTS * sizeof(double));
+
+    double ipoposition[KUKA::FRI::LBRState::NUMBER_OF_JOINTS];
+    memcpy(ipoposition, _client.robotState().getIpoJointPosition(),
+           KUKA::FRI::LBRState::NUMBER_OF_JOINTS * sizeof(double));
+
+    double mtorque[KUKA::FRI::LBRState::NUMBER_OF_JOINTS];
+    memcpy(mtorque, _client.robotState().getMeasuredTorque(),
+           KUKA::FRI::LBRState::NUMBER_OF_JOINTS * sizeof(double));
+
+    double ext_torque[KUKA::FRI::LBRState::NUMBER_OF_JOINTS];
+    memcpy(ext_torque, _client.robotState().getExternalTorque(),
+           KUKA::FRI::LBRState::NUMBER_OF_JOINTS * sizeof(double));
+
+    // Record data
+    _data_file << _step_index << ",";
+    _data_file << _client.robotState().getTimestampSec() << ",";
+    _data_file << _client.robotState().getTimestampNanoSec() << ",";
+
+    for (unsigned int i = 0; i < KUKA::FRI::LBRState::NUMBER_OF_JOINTS; ++i)
+      _data_file << mposition[i] << ",";
+
+    for (unsigned int i = 0; i < KUKA::FRI::LBRState::NUMBER_OF_JOINTS; ++i)
+      _data_file << ipoposition[i] << ",";
+
+    for (unsigned int i = 0; i < KUKA::FRI::LBRState::NUMBER_OF_JOINTS; ++i)
+      _data_file << mtorque[i] << ",";
+
+    for (unsigned int i = 0; i < KUKA::FRI::LBRState::NUMBER_OF_JOINTS; ++i)
+      _data_file << ext_torque[i] << ",";
+
+    _data_file << _client.robotState().getSampleTime() << "\n";
+  }
 };
 
 // Python bindings
@@ -398,6 +492,7 @@ PYBIND11_MODULE(_pyFRI, m) {
   py::class_<PyClientApplication>(m, "ClientApplication")
       .def(py::init<PyLBRClient &>())
       .def("connect", &PyClientApplication::connect)
+      .def("collect_data", &PyClientApplication::collect_data)
       .def("disconnect", &PyClientApplication::disconnect)
       .def("step", &PyClientApplication::step);
 }

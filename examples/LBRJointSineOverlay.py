@@ -104,6 +104,7 @@ def main():
         args.joint_mask, args.freq_hz, args.ampl_rad, args.filter_coeff
     )
     app = fri.ClientApplication(client)
+    app.collect_data("lbr_joint_sine_overlay.csv")
     success = app.connect(args.port, args.hostname)
 
     if not success:
