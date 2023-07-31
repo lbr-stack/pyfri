@@ -75,6 +75,19 @@ However, you **must** ensure the format of the array is correct.
 Arrays that have a `dtype` of `np.float32` are the only ones that can be accepted.
 See how the commands are set in the the examples.
 
+## Collecting data from the robot
+
+We provide additional functionality to the LBR client application class that enables data collection to a text file.
+In Python, simply add the following
+
+```python
+app = fri.ClientApplication(client)
+app.collect_data(file_name)
+```
+
+The string `file_name` should contain the file name for the data file.
+We use the comma-separated values format for the data file, and so the file name should end with the extension `.csv` - *note*, if this isn't the case then `.csv` is automatically appended to the given file name.
+
 # Examples
 
 First, ensure the corresponding Java applications for each example are installed (these were supplied with KUKA Sunrise).
