@@ -98,7 +98,8 @@ public:
 
   void disconnect() {
     _app->disconnect();
-    _data_file.close();
+    if (_collect_data)
+      _data_file.close();
   }
 
   bool step() {
