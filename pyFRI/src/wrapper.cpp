@@ -55,6 +55,16 @@ public:
 
     _collect_data = true;
 
+    // Ensure file name ends with .csv extension
+    std::string extension = ".csv";
+
+    if (file_name.length() < extension.length() ||
+        file_name.compare(file_name.length() - extension.length(),
+                          extension.length(), extension) != 0) {
+      // File name doesn't end with ".csv", so append the extension.
+      file_name += extension;
+    }
+
     // Open data file
     _data_file.open(file_name);
 
