@@ -45,7 +45,7 @@ class PyClientApplication {
 
 public:
   PyClientApplication(PyLBRClient &client) {
-    _step_index = 0;
+    _record_index = 0;
     _collect_data = false;
     _client = client;
     _app = std::make_unique<KUKA::FRI::ClientApplication>(_connection, client);
@@ -69,7 +69,7 @@ public:
     _data_file.open(file_name);
 
     // Write header
-    _data_file << "step"
+    _data_file << "index"
                << ",";
     _data_file << "tsec"
                << ",";
@@ -107,16 +107,19 @@ public:
     bool success = _app->step();
 
     // Optionally record data
-    if (success && _collect_data)
+    KUKA::FRI::ESessionState currentState = _client.robotState().getSessionState();
+    if (success && _collect_data &&
+        (currentState == KUKA::FRI::ESessionState::COMMANDING_WAIT ||
+         currentState == KUKA::FRI::ESessionState::COMMANDING_ACTIVE)) {
       _record_data();
-
-    _step_index++;
+      _record_index++;
+    }
 
     return success;
   }
 
 private:
-  unsigned long long int _step_index;
+  unsigned long long int _record_index;
   bool _collect_data;
   std::ofstream _data_file;
   PyLBRClient _client;
@@ -143,7 +146,7 @@ private:
            KUKA::FRI::LBRState::NUMBER_OF_JOINTS * sizeof(double));
 
     // Record data
-    _data_file << _step_index << ",";
+    _data_file << _record_index << ",";
     _data_file << _client.robotState().getTimestampSec() << ",";
     _data_file << _client.robotState().getTimestampNanoSec() << ",";
 
