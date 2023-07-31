@@ -77,16 +77,16 @@ public:
                << ",";
 
     for (unsigned int i = 0; i < KUKA::FRI::LBRState::NUMBER_OF_JOINTS; ++i)
-      _data_file << "mq" << i + 1 << ",";
+      _data_file << "mp" << i + 1 << ",";
 
     for (unsigned int i = 0; i < KUKA::FRI::LBRState::NUMBER_OF_JOINTS; ++i)
-      _data_file << "miq" << i + 1 << ",";
+      _data_file << "ip" << i + 1 << ",";
 
     for (unsigned int i = 0; i < KUKA::FRI::LBRState::NUMBER_OF_JOINTS; ++i)
       _data_file << "mt" << i + 1 << ",";
 
     for (unsigned int i = 0; i < KUKA::FRI::LBRState::NUMBER_OF_JOINTS; ++i)
-      _data_file << "met" << i + 1 << ",";
+      _data_file << "et" << i + 1 << ",";
 
     _data_file << "dt"
                << "\n";
