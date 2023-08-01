@@ -157,7 +157,7 @@ setup(
     long_description="",
     packages=find_packages(),
     ext_modules=[CMakeExtension("_pyFRI")],
-    install_requires=["numpy", "pygame", "pyoptas"],
+    install_requires=["numpy", "pygame", "pyoptas", "pandas", "matplotlib"],
     cmdclass={"build_ext": CMakeBuild},
     python_requires=">=3.8",
 )
