@@ -44,10 +44,8 @@ public:
 class PyClientApplication {
 
 public:
-  PyClientApplication(PyLBRClient &client) {
-    _record_index = 0;
-    _collect_data = false;
-    _client = client;
+  PyClientApplication(PyLBRClient &client)
+      : _record_index(0), _collect_data(false), _client(client) {
     _app = std::make_unique<KUKA::FRI::ClientApplication>(_connection, client);
   }
 
@@ -108,7 +106,8 @@ public:
     bool success = _app->step();
 
     // Optionally record data
-    KUKA::FRI::ESessionState currentState = _client.robotState().getSessionState();
+    KUKA::FRI::ESessionState currentState =
+        _client.robotState().getSessionState();
     if (success && _collect_data &&
         (currentState == KUKA::FRI::ESessionState::COMMANDING_WAIT ||
          currentState == KUKA::FRI::ESessionState::COMMANDING_ACTIVE)) {
@@ -120,7 +119,7 @@ public:
   }
 
 private:
-  unsigned long long int _record_index;
+  unsigned long long _record_index;
   bool _collect_data;
   std::ofstream _data_file;
   PyLBRClient _client;
