@@ -100,6 +100,8 @@ The columns in the recorded csv file are as follows:
 * `et1, ..., et7`: The external torque for the robot.
 * `dt`: The sample time specified on the KUKA controller.
 
+See the [examples/LBRJointSineOverlay.py](examples/LBRJointSineOverlay.py) example that demonstrates how to easily collect data from the robot.
+
 # Examples
 
 First, ensure the corresponding Java applications for each example are installed (these were supplied with KUKA Sunrise).
