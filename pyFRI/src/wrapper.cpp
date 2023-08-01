@@ -67,6 +67,7 @@ public:
   void collect_data(std::string file_name) {
 
     _collect_data = true;
+    _time = 0.0;
 
     // Ensure file name ends with .csv extension
     std::string extension = ".csv";
@@ -78,11 +79,15 @@ public:
       file_name += extension;
     }
 
+    _file_name = file_name;
+
     // Open data file
-    _data_file.open(file_name);
+    _data_file.open(_file_name);
 
     // Write header
     _data_file << "index"
+               << ",";
+    _data_file << "time"
                << ",";
     _data_file << "record_time_nsec"
                << ",";
@@ -113,33 +118,37 @@ public:
 
   void disconnect() {
     _app->disconnect();
-    if (_collect_data)
+    if (_collect_data) {
       _data_file.close();
+      std::cout << "Saved:" << _file_name << "\n";
+    }
   }
 
   bool step() {
 
     // Step FRI
-    bool success = _app->step();
+    if (!_app->step())
+      return false;
 
     // Optionally record data
     KUKA::FRI::ESessionState currentState =
         _client.robotState().getSessionState();
-    if (success && _collect_data &&
+    if (_collect_data &&
         (currentState == KUKA::FRI::ESessionState::COMMANDING_WAIT ||
          currentState == KUKA::FRI::ESessionState::COMMANDING_ACTIVE)) {
       _record_data();
-      _record_index++;
     }
 
-    return success;
+    return true;
   }
 
 private:
   unsigned long long _record_index;
+  long double _time;
   bool _collect_data;
+  std::string _file_name;
   std::ofstream _data_file;
-  PyLBRClient _client;
+  PyLBRClient &_client;
   KUKA::FRI::UdpConnection _connection;
   std::unique_ptr<KUKA::FRI::ClientApplication> _app;
 
@@ -164,6 +173,7 @@ private:
 
     // Record data
     _data_file << _record_index << ",";
+    _data_file << _time << ",";
     _data_file << getCurrentTimeInNanoseconds() << ",";
     _data_file << _client.robotState().getTimestampSec() << ",";
     _data_file << _client.robotState().getTimestampNanoSec() << ",";
@@ -180,7 +190,12 @@ private:
     for (unsigned int i = 0; i < KUKA::FRI::LBRState::NUMBER_OF_JOINTS; ++i)
       _data_file << ext_torque[i] << ",";
 
-    _data_file << _client.robotState().getSampleTime() << "\n";
+    double sample_time = _client.robotState().getSampleTime();
+    _data_file << sample_time << "\n";
+
+    // Increment _record_index and _time
+    _record_index++;
+    _time += sample_time;
   }
 };
 
