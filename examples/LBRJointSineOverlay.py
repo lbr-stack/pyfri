@@ -1,6 +1,7 @@
 import sys
 import math
 import argparse
+import numpy as np
 import pyFRI as fri
 
 
@@ -19,6 +20,7 @@ class LBRJointSineOverlayClient(fri.LBRClient):
         pass
 
     def onStateChange(self, old_state, new_state):
+        print(f"Changed state from {old_state} to {new_state}")
         if new_state == fri.ESessionState.MONITORING_READY:
             self.offset = 0.0
             self.phi = 0.0
@@ -27,7 +29,9 @@ class LBRJointSineOverlayClient(fri.LBRClient):
             )
 
     def waitForCommand(self):
-        self.robotCommand().setJointPosition(self.robotState().getIpoJointPosition())
+        self.robotCommand().setJointPosition(
+            self.robotState().getIpoJointPosition().astype(np.float32)
+        )
 
     def command(self):
         new_offset = self.ampl_rad * math.sin(self.phi)
@@ -39,7 +43,7 @@ class LBRJointSineOverlayClient(fri.LBRClient):
             self.phi -= 2 * math.pi
         joint_pos = self.robotState().getIpoJointPosition()
         joint_pos[self.joint_mask] += self.offset
-        self.robotCommand().setJointPosition(joint_pos)
+        self.robotCommand().setJointPosition(joint_pos.astype(np.float32))
 
 
 def get_arguments():
