@@ -1,6 +1,9 @@
 import sys
 import math
 import argparse
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 import pyFRI as fri
 
 
@@ -19,6 +22,7 @@ class LBRJointSineOverlayClient(fri.LBRClient):
         pass
 
     def onStateChange(self, old_state, new_state):
+        print(f"Changed state from {old_state} to {new_state}")
         if new_state == fri.ESessionState.MONITORING_READY:
             self.offset = 0.0
             self.phi = 0.0
@@ -27,7 +31,9 @@ class LBRJointSineOverlayClient(fri.LBRClient):
             )
 
     def waitForCommand(self):
-        self.robotCommand().setJointPosition(self.robotState().getIpoJointPosition())
+        self.robotCommand().setJointPosition(
+            self.robotState().getIpoJointPosition().astype(np.float32)
+        )
 
     def command(self):
         new_offset = self.ampl_rad * math.sin(self.phi)
@@ -39,7 +45,7 @@ class LBRJointSineOverlayClient(fri.LBRClient):
             self.phi -= 2 * math.pi
         joint_pos = self.robotState().getIpoJointPosition()
         joint_pos[self.joint_mask] += self.offset
-        self.robotCommand().setJointPosition(joint_pos)
+        self.robotCommand().setJointPosition(joint_pos.astype(np.float32))
 
 
 def get_arguments():
@@ -92,6 +98,13 @@ def get_arguments():
         default=0.99,
         help="Exponential smoothing coeficient.",
     )
+    parser.add_argument(
+        "--save-data",
+        dest="save_data",
+        action="store_true",
+        default=False,
+        help="Set this flag to save the data.",
+    )
 
     return parser.parse_args()
 
@@ -104,6 +117,8 @@ def main():
         args.joint_mask, args.freq_hz, args.ampl_rad, args.filter_coeff
     )
     app = fri.ClientApplication(client)
+    if args.save_data:
+        app.collect_data("lbr_joint_sine_overlay.csv")
     success = app.connect(args.port, args.hostname)
 
     if not success:
@@ -122,6 +137,24 @@ def main():
 
     finally:
         app.disconnect()
+        if args.save_data:
+            df = pd.read_csv("lbr_joint_sine_overlay.csv")
+
+            fig, ax = plt.subplots(4, 1, sharex=True)
+
+            dim2name = {
+                "mp": "Measured Position",
+                "ip": "Ipo Position",
+                "mt": "Measured Torque",
+                "et": "External Torque",
+            }
+
+            for i, dim in enumerate(["mp", "ip", "mt", "et"]):
+                df.plot(x="time", y=[dim + str(i + 1) for i in range(7)], ax=ax[i])
+                ax[i].set_ylabel(dim2name[dim])
+            ax[-1].set_xlabel("Time (s)")
+
+            plt.show()
 
     return 0
 

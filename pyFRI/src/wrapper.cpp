@@ -1,5 +1,8 @@
 // Standard library
+#include <chrono>
 #include <cstdio>
+#include <fstream>
+#include <iostream>
 #include <memory>
 #include <string>
 
@@ -16,6 +19,20 @@
 #include "friLBRClient.h"
 #include "friUdpConnection.h"
 #include "fri_config.h"
+
+// Function for returning the current time
+long long getCurrentTimeInNanoseconds() {
+  using namespace std::chrono;
+
+  // Use the high-resolution clock for the most accurate time measurement
+  high_resolution_clock::time_point currentTime = high_resolution_clock::now();
+
+  // Get the time duration since the epoch in nanoseconds
+  auto duration = duration_cast<nanoseconds>(currentTime.time_since_epoch());
+
+  // Convert the duration to a long long value representing nanoseconds
+  return duration.count();
+}
 
 // Make LBRClient a Python abstract class
 class PyLBRClient : public KUKA::FRI::LBRClient {
@@ -42,21 +59,144 @@ public:
 class PyClientApplication {
 
 public:
-  PyClientApplication(PyLBRClient &client) {
+  PyClientApplication(PyLBRClient &client)
+      : _record_index(0), _collect_data(false), _client(client) {
     _app = std::make_unique<KUKA::FRI::ClientApplication>(_connection, client);
+  }
+
+  void collect_data(std::string file_name) {
+
+    _collect_data = true;
+    _time = 0.0;
+
+    // Ensure file name ends with .csv extension
+    std::string extension = ".csv";
+
+    if (file_name.length() < extension.length() ||
+        file_name.compare(file_name.length() - extension.length(),
+                          extension.length(), extension) != 0) {
+      // File name doesn't end with ".csv", so append the extension.
+      file_name += extension;
+    }
+
+    _file_name = file_name;
+
+    // Open data file
+    _data_file.open(_file_name);
+
+    // Write header
+    _data_file << "index"
+               << ",";
+    _data_file << "time"
+               << ",";
+    _data_file << "record_time_nsec"
+               << ",";
+    _data_file << "tsec"
+               << ",";
+    _data_file << "tnsec"
+               << ",";
+
+    for (unsigned int i = 0; i < KUKA::FRI::LBRState::NUMBER_OF_JOINTS; ++i)
+      _data_file << "mp" << i + 1 << ",";
+
+    for (unsigned int i = 0; i < KUKA::FRI::LBRState::NUMBER_OF_JOINTS; ++i)
+      _data_file << "ip" << i + 1 << ",";
+
+    for (unsigned int i = 0; i < KUKA::FRI::LBRState::NUMBER_OF_JOINTS; ++i)
+      _data_file << "mt" << i + 1 << ",";
+
+    for (unsigned int i = 0; i < KUKA::FRI::LBRState::NUMBER_OF_JOINTS; ++i)
+      _data_file << "et" << i + 1 << ",";
+
+    _data_file << "dt"
+               << "\n";
   }
 
   bool connect(const int port, char *const remoteHost = NULL) {
     return _app->connect(port, remoteHost);
   }
 
-  void disconnect() { _app->disconnect(); }
+  void disconnect() {
+    _app->disconnect();
+    if (_collect_data) {
+      _data_file.close();
+      std::cout << "Saved:" << _file_name << "\n";
+    }
+  }
 
-  bool step() { return _app->step(); }
+  bool step() {
+
+    // Step FRI
+    if (!_app->step())
+      return false;
+
+    // Optionally record data
+    KUKA::FRI::ESessionState currentState =
+        _client.robotState().getSessionState();
+    if (_collect_data &&
+        (currentState == KUKA::FRI::ESessionState::COMMANDING_WAIT ||
+         currentState == KUKA::FRI::ESessionState::COMMANDING_ACTIVE)) {
+      _record_data();
+    }
+
+    return true;
+  }
 
 private:
+  unsigned long long _record_index;
+  long double _time;
+  bool _collect_data;
+  std::string _file_name;
+  std::ofstream _data_file;
+  PyLBRClient &_client;
   KUKA::FRI::UdpConnection _connection;
   std::unique_ptr<KUKA::FRI::ClientApplication> _app;
+
+  void _record_data() {
+
+    // Get state data
+    double mposition[KUKA::FRI::LBRState::NUMBER_OF_JOINTS];
+    memcpy(mposition, _client.robotState().getMeasuredJointPosition(),
+           KUKA::FRI::LBRState::NUMBER_OF_JOINTS * sizeof(double));
+
+    double ipoposition[KUKA::FRI::LBRState::NUMBER_OF_JOINTS];
+    memcpy(ipoposition, _client.robotState().getIpoJointPosition(),
+           KUKA::FRI::LBRState::NUMBER_OF_JOINTS * sizeof(double));
+
+    double mtorque[KUKA::FRI::LBRState::NUMBER_OF_JOINTS];
+    memcpy(mtorque, _client.robotState().getMeasuredTorque(),
+           KUKA::FRI::LBRState::NUMBER_OF_JOINTS * sizeof(double));
+
+    double ext_torque[KUKA::FRI::LBRState::NUMBER_OF_JOINTS];
+    memcpy(ext_torque, _client.robotState().getExternalTorque(),
+           KUKA::FRI::LBRState::NUMBER_OF_JOINTS * sizeof(double));
+
+    // Record data
+    _data_file << _record_index << ",";
+    _data_file << _time << ",";
+    _data_file << getCurrentTimeInNanoseconds() << ",";
+    _data_file << _client.robotState().getTimestampSec() << ",";
+    _data_file << _client.robotState().getTimestampNanoSec() << ",";
+
+    for (unsigned int i = 0; i < KUKA::FRI::LBRState::NUMBER_OF_JOINTS; ++i)
+      _data_file << mposition[i] << ",";
+
+    for (unsigned int i = 0; i < KUKA::FRI::LBRState::NUMBER_OF_JOINTS; ++i)
+      _data_file << ipoposition[i] << ",";
+
+    for (unsigned int i = 0; i < KUKA::FRI::LBRState::NUMBER_OF_JOINTS; ++i)
+      _data_file << mtorque[i] << ",";
+
+    for (unsigned int i = 0; i < KUKA::FRI::LBRState::NUMBER_OF_JOINTS; ++i)
+      _data_file << ext_torque[i] << ",";
+
+    double sample_time = _client.robotState().getSampleTime();
+    _data_file << sample_time << "\n";
+
+    // Increment _record_index and _time
+    _record_index++;
+    _time += sample_time;
+  }
 };
 
 // Python bindings
@@ -398,6 +538,7 @@ PYBIND11_MODULE(_pyFRI, m) {
   py::class_<PyClientApplication>(m, "ClientApplication")
       .def(py::init<PyLBRClient &>())
       .def("connect", &PyClientApplication::connect)
+      .def("collect_data", &PyClientApplication::collect_data)
       .def("disconnect", &PyClientApplication::disconnect)
       .def("step", &PyClientApplication::step);
 }
