@@ -1,4 +1,5 @@
 // Standard library
+#include <chrono>
 #include <cstdio>
 #include <fstream>
 #include <iostream>
@@ -18,6 +19,20 @@
 #include "friLBRClient.h"
 #include "friUdpConnection.h"
 #include "fri_config.h"
+
+// Function for returning the current time
+long long getCurrentTimeInNanoseconds() {
+  using namespace std::chrono;
+
+  // Use the high-resolution clock for the most accurate time measurement
+  high_resolution_clock::time_point currentTime = high_resolution_clock::now();
+
+  // Get the time duration since the epoch in nanoseconds
+  auto duration = duration_cast<nanoseconds>(currentTime.time_since_epoch());
+
+  // Convert the duration to a long long value representing nanoseconds
+  return duration.count();
+}
 
 // Make LBRClient a Python abstract class
 class PyLBRClient : public KUKA::FRI::LBRClient {
@@ -68,6 +83,8 @@ public:
 
     // Write header
     _data_file << "index"
+               << ",";
+    _data_file << "record_time_nsec"
                << ",";
     _data_file << "tsec"
                << ",";
@@ -147,6 +164,7 @@ private:
 
     // Record data
     _data_file << _record_index << ",";
+    _data_file << getCurrentTimeInNanoseconds() << ",";
     _data_file << _client.robotState().getTimestampSec() << ",";
     _data_file << _client.robotState().getTimestampNanoSec() << ",";
 
