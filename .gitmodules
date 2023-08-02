@@ -4,3 +4,6 @@
 [submodule "pybind"]
 	path = pybind
 	url = git@github.com:pybind/pybind11.git
+[submodule "pid"]
+	path = pid
+	url = https://github.com/cmower/pid
