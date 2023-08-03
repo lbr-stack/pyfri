@@ -36,7 +36,27 @@ public:
   AsyncClientApplication()
       : _client(*new AsyncLBRClient),
         _app(*new KUKA::FRI::ClientApplication(_connection, _client)),
-        _fri_loop_continue(false) {}
+        _fri_loop_continue(false) {
+
+    std::vector<double> Kp_position = {1., 1., 1., 1., 1., 1., 1.};
+    std::vector<double> Ki_position =
+        std::vector<double>(KUKA::FRI::LBRState::NUMBER_OF_JOINTS, 0.0);
+    std::vector<double> Kd_position =
+        std::vector<double>(KUKA::FRI::LBRState::NUMBER_OF_JOINTS, 0.0);
+    _client.init_pid_position(Kp_position, Ki_position, Kd_position);
+
+    std::vector<double> Kp_wrench = {1., 1., 1., 1., 1., 1.};
+    std::vector<double> Ki_wrench = std::vector<double>(6, 0.0);
+    std::vector<double> Kd_wrench = std::vector<double>(6, 0.0);
+    _client.init_pid_wrench(Kp_wrench, Ki_wrench, Kd_wrench);
+
+    std::vector<double> Kp_torque = {1., 1., 1., 1., 1., 1., 1.};
+    std::vector<double> Ki_torque =
+        std::vector<double>(KUKA::FRI::LBRState::NUMBER_OF_JOINTS, 0.0);
+    std::vector<double> Kd_torque =
+        std::vector<double>(KUKA::FRI::LBRState::NUMBER_OF_JOINTS, 0.0);
+    _client.init_pid_torque(Kp_torque, Ki_torque, Kd_torque);
+  }
 
   bool connect(const int port, char *const remoteHost = NULL) {
 
