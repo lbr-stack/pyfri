@@ -17,4 +17,4 @@ add_subdirectory(pid)
 
 pybind11_add_module(_pyFRI ${CMAKE_CURRENT_SOURCE_DIR}/pyFRI/src/wrapper.cpp)
 
-target_link_libraries(_pyFRI PRIVATE FRIClient pid)
+target_link_libraries(_pyFRI PRIVATE FRIClient pid pthread)
