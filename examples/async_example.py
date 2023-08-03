@@ -79,8 +79,16 @@ def main():
 
     # Wait for FRI loop to start spinning
     try:
+        rate_wait = fri.Rate(1)
+        counter = 1
+        max_counter = 5
         while not app.is_spinning():
-            pass
+            print("Waiting for FRI loop to start, attempt", counter, "of", max_counter)
+            counter += 1
+            if counter == max_counter + 1:
+                print("FRI loop did not start, quitting")
+                return
+            rate_wait.sleep()
     except KeyboardInterrupt:
         pass
     finally:
