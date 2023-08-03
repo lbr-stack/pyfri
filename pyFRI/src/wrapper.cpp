@@ -34,6 +34,43 @@ long long getCurrentTimeInNanoseconds() {
   return duration.count();
 }
 
+//
+// Rate class
+//
+//   Based on rospy.Rate implementation:
+//   https://github.com/ros/ros_comm/blob/noetic-devel/clients/rospy/src/rospy/timer.py
+//
+class Rate {
+
+public:
+  Rate(float hz) {
+    float sleep_dur = 1000000000.0 / hz;
+    _sleep_dur = static_cast<long long>(sleep_dur);
+    _last_time = getCurrentTimeInNanoseconds();
+  }
+
+  void sleep() {
+    long long curr_time = getCurrentTimeInNanoseconds();
+    std::this_thread::sleep_for(
+        std::chrono::nanoseconds(_remaining(curr_time)));
+    _last_time += _sleep_dur;
+    if (curr_time - _last_time > _sleep_dur * 2)
+      _last_time = curr_time;
+  }
+
+private:
+  long long _last_time;
+  long long _sleep_dur;
+
+  long long _remaining(long long curr_time) {
+
+    if (_last_time > curr_time)
+      _last_time = curr_time;
+
+    return _sleep_dur - (curr_time - _last_time);
+  }
+};
+
 // Make LBRClient a Python abstract class
 class PyLBRClient : public KUKA::FRI::LBRClient {
 
@@ -541,4 +578,6 @@ PYBIND11_MODULE(_pyFRI, m) {
       .def("collect_data", &PyClientApplication::collect_data)
       .def("disconnect", &PyClientApplication::disconnect)
       .def("step", &PyClientApplication::step);
+
+  py::class_<Rate>(m, "Rate").def(py::init<float>()).def("sleep", &Rate::sleep);
 }
