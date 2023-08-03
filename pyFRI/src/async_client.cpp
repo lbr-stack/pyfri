@@ -10,10 +10,11 @@
 // PID implementation: https://github.com/cmower/pid
 #include "pid.hpp"
 
+const unsigned int NUM_CART_VEC = 6;
+
 class AsyncLBRClient : public KUKA::FRI::LBRClient {
 
 private:
-  static const unsigned int NUM_CART_VEC = 6;
   std::vector<double> _set_position;
   std::vector<double> _set_wrench;
   std::vector<double> _set_torque;
@@ -42,7 +43,9 @@ public:
   void init_pid_position(std::vector<double> Kp, std::vector<double> Ki,
                          std::vector<double> Kd) {
     _pid_position_ready = true;
-    _pid_position = std::make_unique<PIDArray>(static_cast<unsigned int>(KUKA::FRI::LBRState::NUMBER_OF_JOINTS), Kp, Ki, Kd);
+    _pid_position = std::make_unique<PIDArray>(
+        static_cast<unsigned int>(KUKA::FRI::LBRState::NUMBER_OF_JOINTS), Kp,
+        Ki, Kd);
   }
 
   void init_pid_wrench(std::vector<double> Kp, std::vector<double> Ki,
@@ -54,7 +57,9 @@ public:
   void init_pid_torque(std::vector<double> Kp, std::vector<double> Ki,
                        std::vector<double> Kd) {
     _pid_torque_ready = true;
-    _pid_torque = std::make_unique<PIDArray>(static_cast<unsigned int>(KUKA::FRI::LBRState::NUMBER_OF_JOINTS), Kp, Ki, Kd);
+    _pid_torque = std::make_unique<PIDArray>(
+        static_cast<unsigned int>(KUKA::FRI::LBRState::NUMBER_OF_JOINTS), Kp,
+        Ki, Kd);
   }
 
   void onStateChange(KUKA::FRI::ESessionState oldState,
@@ -86,8 +91,10 @@ public:
     }
 
     case KUKA::FRI::EClientCommandMode::TORQUE: {
-      _proc_torque = std::vector<double>(KUKA::FRI::LBRState::NUMBER_OF_JOINTS, 0.0);
-      _set_torque = std::vector<double>(KUKA::FRI::LBRState::NUMBER_OF_JOINTS, 0.0);
+      _proc_torque =
+          std::vector<double>(KUKA::FRI::LBRState::NUMBER_OF_JOINTS, 0.0);
+      _set_torque =
+          std::vector<double>(KUKA::FRI::LBRState::NUMBER_OF_JOINTS, 0.0);
       robotCommand().setTorque(_proc_torque.data());
       break;
     }

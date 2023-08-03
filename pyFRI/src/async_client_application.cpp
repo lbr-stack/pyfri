@@ -16,6 +16,7 @@ class AsyncClientApplication {
 private:
   bool _success;
   bool _fri_loop_continue;
+  bool _spinning;
   std::thread _fri_loop_thread;
   AsyncLBRClient &_client;
   KUKA::FRI::UdpConnection _connection;
@@ -24,9 +25,14 @@ private:
   void _spin_fri() {
     while (_success && _fri_loop_continue) {
       _success = _app.step();
+
+      if (_success)
+        _spinning = true;
+
       if (_client.robotState().getSessionState() ==
           KUKA::FRI::ESessionState::IDLE) {
         _success = false;
+        _spinning = false;
         break;
       }
     }
@@ -36,7 +42,7 @@ public:
   AsyncClientApplication()
       : _client(*new AsyncLBRClient),
         _app(*new KUKA::FRI::ClientApplication(_connection, _client)),
-        _fri_loop_continue(false) {
+        _fri_loop_continue(false), _spinning(false) {
 
     std::vector<double> Kp_position = {1., 1., 1., 1., 1., 1., 1.};
     std::vector<double> Ki_position =
@@ -46,8 +52,8 @@ public:
     _client.init_pid_position(Kp_position, Ki_position, Kd_position);
 
     std::vector<double> Kp_wrench = {1., 1., 1., 1., 1., 1.};
-    std::vector<double> Ki_wrench = std::vector<double>(6, 0.0);
-    std::vector<double> Kd_wrench = std::vector<double>(6, 0.0);
+    std::vector<double> Ki_wrench = std::vector<double>(NUM_CART_VEC, 0.0);
+    std::vector<double> Kd_wrench = std::vector<double>(NUM_CART_VEC, 0.0);
     _client.init_pid_wrench(Kp_wrench, Ki_wrench, Kd_wrench);
 
     std::vector<double> Kp_torque = {1., 1., 1., 1., 1., 1., 1.};
@@ -70,6 +76,8 @@ public:
 
     return _success;
   }
+
+  bool is_spinning() { return _spinning; }
 
   bool is_ok() { return _success; }
 

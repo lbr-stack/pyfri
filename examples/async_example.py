@@ -3,6 +3,7 @@ import math
 import argparse
 import pyFRI as fri
 
+
 def get_arguments():
     def cvt_joint_mask(value):
         int_value = int(value)
@@ -63,27 +64,37 @@ def get_arguments():
 
     return parser.parse_args()
 
+
 def main():
     print("Running FRI Version:", fri.FRI_VERSION)
 
     args = get_arguments()
 
     app = fri.AsyncClientApplication()
-    success = app.connect(args.port, args.hostname)
+    if app.connect(args.port, args.hostname):
+        print("Connected to KUKA Sunrise controller.")
+    else:
+        print("Connection to KUKA Sunrise controller failed.")
+        return
 
-    time.sleep(0.5)  # wait to ensure fri loop started
+    # Wait for FRI loop to start spinning
+    try:
+        while not app.is_spinning():
+            pass
+    except KeyboardInterrupt:
+        pass
+    finally:
+        app.disconnect()
+        print("Goodbye")
+        return
 
     hz = 50
-    time_step = 1./float(hz)
+    time_step = 1.0 / float(hz)
 
     q = app.get_proc_position()
     offset = 0.0
     phi = 0.0
     step_width = 2 * math.pi * args.freq_hz * time_step
-
-    if not success:
-        print("Connection to KUKA Sunrise controller failed.")
-        return 1    
 
     try:
         rate = fri.Rate(hz)
@@ -102,7 +113,7 @@ def main():
         pass
     finally:
         app.disconnect()
-            
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

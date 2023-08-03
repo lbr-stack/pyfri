@@ -593,7 +593,9 @@ PYBIND11_MODULE(_pyFRI, m) {
         return ptr; // Return the unique_ptr
       }))
       .def("connect", &AsyncClientApplication::connect)
+      .def("disconnect", &AsyncClientApplication::disconnect)
       .def("is_ok", &AsyncClientApplication::is_ok)
+      .def("is_spinning", &AsyncClientApplication::is_spinning)
       .def("get_ipo_position",
            [](const AsyncClientApplication &self) {
              float dataf[KUKA::FRI::LBRState::NUMBER_OF_JOINTS];
@@ -656,14 +658,14 @@ PYBIND11_MODULE(_pyFRI, m) {
            })
       .def("get_proc_wrench",
            [](const AsyncClientApplication &self) {
-             float dataf[6]; // 6 is dimension of cartesian vector
+             float dataf[NUM_CART_VEC];
              std::vector<double> data = self.get_proc_wrench();
 
              // Parse: double -> float
-             for (int i = 0; i < 6; i++)
+             for (int i = 0; i < NUM_CART_VEC; i++)
                dataf[i] = (float)data[i];
 
-             return py::array_t<float>({6}, dataf);
+             return py::array_t<float>({NUM_CART_VEC}, dataf);
            })
       .def("get_proc_torque",
            [](const AsyncClientApplication &self) {
@@ -691,14 +693,14 @@ PYBIND11_MODULE(_pyFRI, m) {
            })
       .def("get_set_wrench",
            [](const AsyncClientApplication &self) {
-             float dataf[6]; // 6 is dimension of cartesian vector
+             float dataf[NUM_CART_VEC];
              std::vector<double> data = self.get_set_wrench();
 
              // Parse: double -> float
-             for (int i = 0; i < 6; i++)
+             for (int i = 0; i < NUM_CART_VEC; i++)
                dataf[i] = (float)data[i];
 
-             return py::array_t<float>({6}, dataf);
+             return py::array_t<float>({NUM_CART_VEC}, dataf);
            })
       .def("get_set_torque",
            [](const AsyncClientApplication &self) {
@@ -732,14 +734,14 @@ PYBIND11_MODULE(_pyFRI, m) {
            })
       .def("set_wrench",
            [](AsyncClientApplication &self, py::array_t<double> values) {
-             // 6 is dimension of cartesian vector
-             if (values.ndim() != 1 || PyArray_DIMS(values.ptr())[0] != 6) {
+             if (values.ndim() != 1 ||
+                 PyArray_DIMS(values.ptr())[0] != NUM_CART_VEC) {
                throw std::runtime_error("Input array must have shape (6,)!");
              }
              auto buf = values.request();
              const double *data = static_cast<double *>(buf.ptr);
              std::vector<double> datav;
-             for (unsigned int i = 0; i < 6; ++i)
+             for (unsigned int i = 0; i < NUM_CART_VEC; ++i)
                datav.push_back(data[i]);
              self.set_wrench(datav);
            })
