@@ -20,6 +20,9 @@
 #include "friUdpConnection.h"
 #include "fri_config.h"
 
+// Local
+#include "async_client_application.cpp"
+
 // Function for returning the current time
 long long getCurrentTimeInNanoseconds() {
   using namespace std::chrono;
@@ -580,4 +583,179 @@ PYBIND11_MODULE(_pyFRI, m) {
       .def("step", &PyClientApplication::step);
 
   py::class_<Rate>(m, "Rate").def(py::init<float>()).def("sleep", &Rate::sleep);
+
+  py::class_<AsyncClientApplication>(m, "AsyncClientApplication")
+      .def(py::init([]() {
+        auto app =
+            new AsyncClientApplication(); // Create a new instance using new
+        std::unique_ptr<AsyncClientApplication> ptr(
+            app);   // Wrap it in a unique_ptr
+        return ptr; // Return the unique_ptr
+      }))
+      .def("connect", &AsyncClientApplication::connect)
+      .def("is_ok", &AsyncClientApplication::is_ok)
+      .def("get_ipo_position",
+           [](const AsyncClientApplication &self) {
+             float dataf[KUKA::FRI::LBRState::NUMBER_OF_JOINTS];
+             std::vector<double> data = self.get_ipo_position();
+
+             // Parse: double -> float
+             for (int i = 0; i < KUKA::FRI::LBRState::NUMBER_OF_JOINTS; i++)
+               dataf[i] = (float)data[i];
+
+             return py::array_t<float>({KUKA::FRI::LBRState::NUMBER_OF_JOINTS},
+                                       dataf);
+           })
+      .def("get_measured_position",
+           [](const AsyncClientApplication &self) {
+             float dataf[KUKA::FRI::LBRState::NUMBER_OF_JOINTS];
+             std::vector<double> data = self.get_measured_position();
+
+             // Parse: double -> float
+             for (int i = 0; i < KUKA::FRI::LBRState::NUMBER_OF_JOINTS; i++)
+               dataf[i] = (float)data[i];
+
+             return py::array_t<float>({KUKA::FRI::LBRState::NUMBER_OF_JOINTS},
+                                       dataf);
+           })
+      .def("get_measured_torque",
+           [](const AsyncClientApplication &self) {
+             float dataf[KUKA::FRI::LBRState::NUMBER_OF_JOINTS];
+             std::vector<double> data = self.get_measured_torque();
+
+             // Parse: double -> float
+             for (int i = 0; i < KUKA::FRI::LBRState::NUMBER_OF_JOINTS; i++)
+               dataf[i] = (float)data[i];
+
+             return py::array_t<float>({KUKA::FRI::LBRState::NUMBER_OF_JOINTS},
+                                       dataf);
+           })
+      .def("get_external_torque",
+           [](const AsyncClientApplication &self) {
+             float dataf[KUKA::FRI::LBRState::NUMBER_OF_JOINTS];
+             std::vector<double> data = self.get_external_torque();
+
+             // Parse: double -> float
+             for (int i = 0; i < KUKA::FRI::LBRState::NUMBER_OF_JOINTS; i++)
+               dataf[i] = (float)data[i];
+
+             return py::array_t<float>({KUKA::FRI::LBRState::NUMBER_OF_JOINTS},
+                                       dataf);
+           })
+      .def("get_proc_position",
+           [](const AsyncClientApplication &self) {
+             float dataf[KUKA::FRI::LBRState::NUMBER_OF_JOINTS];
+             std::vector<double> data = self.get_proc_position();
+
+             // Parse: double -> float
+             for (int i = 0; i < KUKA::FRI::LBRState::NUMBER_OF_JOINTS; i++)
+               dataf[i] = (float)data[i];
+
+             return py::array_t<float>({KUKA::FRI::LBRState::NUMBER_OF_JOINTS},
+                                       dataf);
+           })
+      .def("get_proc_wrench",
+           [](const AsyncClientApplication &self) {
+             float dataf[6]; // 6 is dimension of cartesian vector
+             std::vector<double> data = self.get_proc_wrench();
+
+             // Parse: double -> float
+             for (int i = 0; i < 6; i++)
+               dataf[i] = (float)data[i];
+
+             return py::array_t<float>({6}, dataf);
+           })
+      .def("get_proc_torque",
+           [](const AsyncClientApplication &self) {
+             float dataf[KUKA::FRI::LBRState::NUMBER_OF_JOINTS];
+             std::vector<double> data = self.get_proc_torque();
+
+             // Parse: double -> float
+             for (int i = 0; i < KUKA::FRI::LBRState::NUMBER_OF_JOINTS; i++)
+               dataf[i] = (float)data[i];
+
+             return py::array_t<float>({KUKA::FRI::LBRState::NUMBER_OF_JOINTS},
+                                       dataf);
+           })
+      .def("get_set_position",
+           [](const AsyncClientApplication &self) {
+             float dataf[KUKA::FRI::LBRState::NUMBER_OF_JOINTS];
+             std::vector<double> data = self.get_set_position();
+
+             // Parse: double -> float
+             for (int i = 0; i < KUKA::FRI::LBRState::NUMBER_OF_JOINTS; i++)
+               dataf[i] = (float)data[i];
+
+             return py::array_t<float>({KUKA::FRI::LBRState::NUMBER_OF_JOINTS},
+                                       dataf);
+           })
+      .def("get_set_wrench",
+           [](const AsyncClientApplication &self) {
+             float dataf[6]; // 6 is dimension of cartesian vector
+             std::vector<double> data = self.get_set_wrench();
+
+             // Parse: double -> float
+             for (int i = 0; i < 6; i++)
+               dataf[i] = (float)data[i];
+
+             return py::array_t<float>({6}, dataf);
+           })
+      .def("get_set_torque",
+           [](const AsyncClientApplication &self) {
+             float dataf[KUKA::FRI::LBRState::NUMBER_OF_JOINTS];
+             std::vector<double> data = self.get_set_torque();
+
+             // Parse: double -> float
+             for (int i = 0; i < KUKA::FRI::LBRState::NUMBER_OF_JOINTS; i++)
+               dataf[i] = (float)data[i];
+
+             return py::array_t<float>({KUKA::FRI::LBRState::NUMBER_OF_JOINTS},
+                                       dataf);
+           })
+      .def("set_joint_position",
+           [](AsyncClientApplication &self, py::array_t<double> values) {
+             if (values.ndim() != 1 ||
+                 PyArray_DIMS(values.ptr())[0] !=
+                     KUKA::FRI::LBRState::NUMBER_OF_JOINTS) {
+               throw std::runtime_error(
+                   "Input array must have shape (" +
+                   std::to_string(KUKA::FRI::LBRState::NUMBER_OF_JOINTS) +
+                   ",)!");
+             }
+             auto buf = values.request();
+             const double *data = static_cast<double *>(buf.ptr);
+             std::vector<double> datav;
+             for (unsigned int i = 0; i < KUKA::FRI::LBRState::NUMBER_OF_JOINTS;
+                  ++i)
+               datav.push_back(data[i]);
+             self.set_position(datav);
+           })
+      .def("set_wrench",
+           [](AsyncClientApplication &self, py::array_t<double> values) {
+             // 6 is dimension of cartesian vector
+             if (values.ndim() != 1 || PyArray_DIMS(values.ptr())[0] != 6) {
+               throw std::runtime_error("Input array must have shape (6,)!");
+             }
+             auto buf = values.request();
+             const double *data = static_cast<double *>(buf.ptr);
+             std::vector<double> datav;
+             for (unsigned int i = 0; i < 6; ++i)
+               datav.push_back(data[i]);
+             self.set_wrench(datav);
+           })
+      .def("set_torque", [](AsyncClientApplication &self,
+                            py::array_t<double> values) {
+        if (values.ndim() != 1 || PyArray_DIMS(values.ptr())[0] !=
+                                      KUKA::FRI::LBRState::NUMBER_OF_JOINTS) {
+          throw std::runtime_error(
+              "Input array must have shape (" +
+              std::to_string(KUKA::FRI::LBRState::NUMBER_OF_JOINTS) + ",)!");
+        }
+        auto buf = values.request();
+        const double *data = static_cast<double *>(buf.ptr);
+        std::vector<double> datav;
+        for (unsigned int i = 0; i < KUKA::FRI::LBRState::NUMBER_OF_JOINTS; ++i)
+          datav.push_back(data[i]);
+        self.set_torque(datav);
+      });
 }
