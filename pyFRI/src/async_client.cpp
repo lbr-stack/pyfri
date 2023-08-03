@@ -29,9 +29,9 @@ private:
   bool _pid_wrench_ready;
   bool _pid_torque_ready;
 
-  std::unique_ptr<PIDArray> _pid_position;
-  std::unique_ptr<PIDArray> _pid_wrench;
-  std::unique_ptr<PIDArray> _pid_torque;
+  std::unique_ptr<PID::PIDArray> _pid_position;
+  std::unique_ptr<PID::PIDArray> _pid_wrench;
+  std::unique_ptr<PID::PIDArray> _pid_torque;
 
 public:
   AsyncLBRClient()
@@ -43,7 +43,7 @@ public:
   void init_pid_position(std::vector<double> Kp, std::vector<double> Ki,
                          std::vector<double> Kd) {
     _pid_position_ready = true;
-    _pid_position = std::make_unique<PIDArray>(
+    _pid_position = std::make_unique<PID::PIDArray>(
         static_cast<unsigned int>(KUKA::FRI::LBRState::NUMBER_OF_JOINTS), Kp,
         Ki, Kd);
   }
@@ -51,13 +51,13 @@ public:
   void init_pid_wrench(std::vector<double> Kp, std::vector<double> Ki,
                        std::vector<double> Kd) {
     _pid_wrench_ready = true;
-    _pid_wrench = std::make_unique<PIDArray>(NUM_CART_VEC, Kp, Ki, Kd);
+    _pid_wrench = std::make_unique<PID::PIDArray>(NUM_CART_VEC, Kp, Ki, Kd);
   }
 
   void init_pid_torque(std::vector<double> Kp, std::vector<double> Ki,
                        std::vector<double> Kd) {
     _pid_torque_ready = true;
-    _pid_torque = std::make_unique<PIDArray>(
+    _pid_torque = std::make_unique<PID::PIDArray>(
         static_cast<unsigned int>(KUKA::FRI::LBRState::NUMBER_OF_JOINTS), Kp,
         Ki, Kd);
   }
