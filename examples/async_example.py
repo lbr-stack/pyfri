@@ -1,6 +1,7 @@
 import time
 import math
 import argparse
+import numpy as np
 import pyFRI as fri
 
 
@@ -54,13 +55,6 @@ def get_arguments():
         default=0.99,
         help="Exponential smoothing coeficient.",
     )
-    parser.add_argument(
-        "--save-data",
-        dest="save_data",
-        action="store_true",
-        default=False,
-        help="Set this flag to save the data.",
-    )
 
     return parser.parse_args()
 
@@ -78,23 +72,30 @@ def main():
         return
 
     # Wait for FRI loop to start spinning
-    try:
-        rate_wait = fri.Rate(1)
-        counter = 1
-        max_counter = 5
-        while not app.is_spinning():
-            print("Waiting for FRI loop to start, attempt", counter, "of", max_counter)
-            counter += 1
-            if counter == max_counter + 1:
-                print("FRI loop did not start, quitting")
-                return
-            rate_wait.sleep()
-    except KeyboardInterrupt:
-        pass
-    finally:
-        app.disconnect()
-        print("Goodbye")
-        return
+    # try:
+    rate_wait = fri.Rate(1)
+    counter = 1
+    max_counter = 5
+    spinning = app.is_spinning()
+    print("spinning=", spinning)
+    while not spinning:
+        print("Waiting for FRI loop to start, attempt", counter, "of", max_counter)
+        counter += 1
+        if counter == max_counter + 1:
+            print("FRI loop did not start, quitting")
+            return
+        rate_wait.sleep()
+        spinning = app.is_spinning()
+    print("spinning=", spinning)
+    time.sleep(10.)
+    # except KeyboardInterrupt:
+    #     pass
+    # finally:
+    #     app.disconnect()
+    #     print("Goodbye for now")
+    #     return
+
+    print("FRI Loop started")
 
     hz = 50
     time_step = 1.0 / float(hz)
@@ -115,7 +116,7 @@ def main():
             if phi >= (2 * math.pi):
                 phi -= 2 * math.pi
             q[args.joint_mask] += offset
-            app.set_position(q.astype(np.float32))
+            app.set_joint_position(q.astype(np.float32))
             rate.sleep()
     except KeyboardInterrupt:
         pass
