@@ -4,6 +4,8 @@ import argparse
 import numpy as np
 import pyFRI as fri
 
+np.set_printoptions(precision=3, suppress=True, linewidth=1000)
+
 
 def get_arguments():
     def cvt_joint_mask(value):
@@ -97,16 +99,17 @@ def main():
 
     print("FRI Loop started")
 
-    hz = 50
+    hz = 10
     time_step = 1.0 / float(hz)
 
-    q = app.get_proc_position()
+    q0 = app.get_proc_position()
     offset = 0.0
     phi = 0.0
     step_width = 2 * math.pi * args.freq_hz * time_step
 
     try:
         rate = fri.Rate(hz)
+        t = 0.
         while app.is_ok():
             new_offset = args.ampl_rad * math.sin(phi)
             offset = (offset * args.filter_coeff) + (
@@ -115,9 +118,15 @@ def main():
             phi += step_width
             if phi >= (2 * math.pi):
                 phi -= 2 * math.pi
-            q[args.joint_mask] += offset
+            # q[args.joint_mask] += offset
+            q = q0.copy()
+            q[args.joint_mask] += math.radians(20)*math.sin(t*0.)
+            # print(q)
             app.set_joint_position(q.astype(np.float32))
+            qm = app.get_measured_position()
+            print(np.linalg.norm(qm - q))
             rate.sleep()
+            t += time_step
     except KeyboardInterrupt:
         pass
     finally:
