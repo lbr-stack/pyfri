@@ -1,4 +1,4 @@
-# FRI-Client-SDK_Python
+# pyFRI
 
 KUKA Fast Robot Interface Python SDK.
 The code in this repository, provides Python bindings for the FRI Client SDK C++.
@@ -36,7 +36,7 @@ See the [examples](examples/).
 
 **THIS IS NOT A KUKA PRODUCT.**
 
-[@cmower](https://github.com/cmower) is not affiliated with KUKA.
+[@cmower](https://github.com/cmower) and [@mhubii](https://github.com/mhubii) are not affiliated with KUKA.
 
 # Support
 
@@ -47,25 +47,22 @@ The following versions of FRI are currently supported:
 Note, whilst FRI version 2.5 is supported some functionality is not.
 Currently, FRI Cartesian Overlay is not supported by FRI-Client-SDK_Python.
 
-If you have a different version, please consider [forking](https://github.com/cmower/FRI-Client-SDK_Cpp/fork) and [submitting a pull request](https://github.com/cmower/FRI-Client-SDK_Cpp/pulls).
+If you have a different version, please consider [forking](https://github.com/lbr-stack/pyFRI/fork) and [submitting a pull request](https://github.com/lbr-stack/pyFRI/pulls).
 
 # Install
 
-1. Clone repository: `$ git clone --recursive git@github.com:cmower/FRI-Client-SDK_Python.git` (make sure you include `--recursive`)
-2. Change directory: `$ cd FRI-Client-SDK_Python`
+1. Clone repository (make sure you include `--recursive`):
+   - (ssh) `$ git clone --recursive git@github.com:lbr-stack/pyFRI.git`
+   - (https) `$ git clone --recursive https://github.com/lbr-stack/pyFRI.git`
+2. Change directory: `$ cd pyFRI`
 3. Modify `fri_config.py`: uncomment the line corresponding to your version of FRI.
 4. Install: `$ pip install .`
 
 ## Upgrading/switching between FRI Versions
 
-If you upgrade your FRI version or want to switch between them, you need to manually remove the `FRI-Client-SDK_Python/build` directory before running `pip install`.
+If you upgrade your FRI version or want to switch between them, you need to manually remove the `build/` directory before running `pip install`.
 
 # Usage
-
-## Java application
-
-A flexible Java application is provided [here](https://github.com/cmower/LBR-Java-app).
-This must be installed on the KUKA Sunrise controller.
 
 ## Data types
 
