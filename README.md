@@ -30,6 +30,8 @@ app = fri.ClientApplication(client)
 
 Since UDP is the only supported connection type and the connection object is not actually required by the user after declaring the variable, the `UdpConnection` object is created internally to the `fri.ClientApplication` class object.
 
+The `pyFRI` library also supports asynchronous execution, see *Execution types* section below.
+
 See the [examples](examples/).
 
 # Important notice
@@ -37,6 +39,45 @@ See the [examples](examples/).
 **THIS IS NOT A KUKA PRODUCT.**
 
 [@cmower](https://github.com/cmower) is not affiliated with KUKA.
+
+# Execution types
+
+<p align="center">
+  <img src="doc/sync-vs-async.png" width="70%" align="center">
+</p>
+
+Two execution types are supported: (i) synchronous, and (ii) asynchronous.
+These are both shown in the figure above.
+
+## Synchronous
+
+This constitutes the operational approach embraced by FRI.
+Conceptually, you can envision this approach as executing the subsequent actions:
+
+1. The KUKA controller sends a message to the LBR client over a UDP connection.
+2. A response is computed (using some method defined in the client application).
+3. The commanded response is encoded and sent back to the controller.
+4. The physical robot moves according the command and controller type selected in the Java application.
+
+These steps are repeated at a sampling rate defined in the Java application, e.g. 200Hz.
+
+The pyFRI library abstracts the functionalities of the `ClientApplication` and `LBRClient` classes, enabling users to craft application scripts using classes/functions that mirror the examples provided in the FRI C++ documentation.
+An added benefit is the availability of KUKA's FRI documentation for C++, which can serve as a guide for pyFRI users.
+
+The drawback for this approach is the execution loop in the Python application must fit within the sampling frequency set by the Java application.
+As such, higher sampling frequencies (i.e. 500-1000Hz) can be difficult to achieve using pyFRI.
+
+## Asynchronous
+
+The pyFRI library incorporates an asynchronous execution approach, allowing users to execute FRI communication at various permissible sampling frequencies (i.e., 100-1000Hz), along with a distinct sampling frequency for the loop on the Python application's end.
+The FRI communication on the C++ side is executed on another thread and shared memory between the C++ client and Python application is used to define the target joint states.
+
+In order to ensure smooth robot motion, a PID controller is implemented where the user specifies the set target.
+The process variable is executed on the robot using an open-loop PID controller.
+
+The advantage of employing this execution approach lies in the flexibility to configure the controller to operate at the user's preferred frequency, while the Python loop can operate at a lower frequency.
+This proves particularly useful during when implementing Model Predictive Control.
+However, a downside of this method is the necessity for precise tuning of the PID controller.
 
 # Support
 
