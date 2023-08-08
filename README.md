@@ -67,6 +67,8 @@ An added benefit is the availability of KUKA's FRI documentation for C++, which 
 The drawback for this approach is the execution loop in the Python application must fit within the sampling frequency set by the Java application.
 As such, higher sampling frequencies (i.e. 500-1000Hz) can be difficult to achieve using pyFRI.
 
+The majority of the examples use the synchronous execution style.
+
 ## Asynchronous
 
 The pyFRI library incorporates an asynchronous execution approach, allowing users to execute FRI communication at various permissible sampling frequencies (i.e., 100-1000Hz), along with a distinct sampling frequency for the loop on the Python application's end.
@@ -78,6 +80,8 @@ The process variable is executed on the robot using an open-loop PID controller.
 The advantage of employing this execution approach lies in the flexibility to configure the controller to operate at the user's preferred frequency, while the Python loop can operate at a lower frequency.
 This proves particularly useful during when implementing Model Predictive Control.
 However, a downside of this method is the necessity for precise tuning of the PID controller.
+
+See the [examples/async_example.py](examples/async_example.py) example script.
 
 # Support
 
