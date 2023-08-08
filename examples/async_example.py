@@ -36,27 +36,6 @@ def get_arguments():
         default=3,
         help="The joint to move.",
     )
-    parser.add_argument(
-        "--freq-hz",
-        dest="freq_hz",
-        type=float,
-        default=0.25,
-        help="The frequency of the sine wave.",
-    )
-    parser.add_argument(
-        "--ampl-rad",
-        dest="ampl_rad",
-        type=float,
-        default=0.04,
-        help="Applitude of the sine wave.",
-    )
-    parser.add_argument(
-        "--filter-coeff",
-        dest="filter_coeff",
-        type=float,
-        default=0.99,
-        help="Exponential smoothing coeficient.",
-    )
 
     return parser.parse_args()
 
@@ -64,67 +43,38 @@ def get_arguments():
 def main():
     print("Running FRI Version:", fri.FRI_VERSION)
 
+    # Get arguments and initialize client application
     args = get_arguments()
-
     app = fri.AsyncClientApplication()
+
+    # Set PID position gains
+    pos_Kp = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
+    pos_Ki = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+    pos_Kd = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+    app.set_pid_position_gains(pos_Kp, pos_Ki, pos_Kd)
+
+    # Connect to controller
     if app.connect(args.port, args.hostname):
         print("Connected to KUKA Sunrise controller.")
     else:
         print("Connection to KUKA Sunrise controller failed.")
         return
 
-    # Wait for FRI loop to start spinning
-    # try:
-    rate_wait = fri.Rate(1)
-    counter = 1
-    max_counter = 5
-    spinning = app.is_spinning()
-    print("spinning=", spinning)
-    while not spinning:
-        print("Waiting for FRI loop to start, attempt", counter, "of", max_counter)
-        counter += 1
-        if counter == max_counter + 1:
-            print("FRI loop did not start, quitting")
-            return
-        rate_wait.sleep()
-        spinning = app.is_spinning()
-    print("spinning=", spinning)
-    time.sleep(10.)
-    # except KeyboardInterrupt:
-    #     pass
-    # finally:
-    #     app.disconnect()
-    #     print("Goodbye for now")
-    #     return
-
+    # Wait for FRI loop to start
+    app.wait()
     print("FRI Loop started")
 
+    # Setup for Python loop
     hz = 10
-    time_step = 1.0 / float(hz)
-
-    q0 = app.get_proc_position()
-    offset = 0.0
-    phi = 0.0
-    step_width = 2 * math.pi * args.freq_hz * time_step
+    dt = 1.0 / float(hz)
+    rate = fri.Rate(hz)
+    q = app.robotState().getIpoJointPosition()
 
     try:
-        rate = fri.Rate(hz)
-        t = 0.
+        t = 0.0
         while app.is_ok():
-            new_offset = args.ampl_rad * math.sin(phi)
-            offset = (offset * args.filter_coeff) + (
-                new_offset * (1.0 - args.filter_coeff)
-            )
-            phi += step_width
-            if phi >= (2 * math.pi):
-                phi -= 2 * math.pi
-            # q[args.joint_mask] += offset
-            q = q0.copy()
-            q[args.joint_mask] += math.radians(20)*math.sin(t*0.)
-            # print(q)
-            app.set_joint_position(q.astype(np.float32))
-            qm = app.get_measured_position()
-            print(np.linalg.norm(qm - q))
+            q[args.joint_mask] += math.radians(20) * math.sin(t * 0.01)
+            app.set_position(q.astype(np.float32))
             rate.sleep()
             t += time_step
     except KeyboardInterrupt:
