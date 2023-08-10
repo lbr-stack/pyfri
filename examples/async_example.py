@@ -51,7 +51,7 @@ def main():
     pos_Kp = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
     pos_Ki = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     pos_Kd = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-    app.set_pid_position_gains(pos_Kp, pos_Ki, pos_Kd)
+    app.client().set_pid_position_gains(pos_Kp, pos_Ki, pos_Kd)
 
     # Connect to controller
     if app.connect(args.port, args.hostname):
@@ -68,13 +68,13 @@ def main():
     hz = 10
     dt = 1.0 / float(hz)
     rate = fri.Rate(hz)
-    q = app.robotState().getIpoJointPosition()
+    q = app.client().robotState().getIpoJointPosition()
 
     try:
         t = 0.0
         while app.is_ok():
             q[args.joint_mask] += math.radians(20) * math.sin(t * 0.01)
-            app.set_position(q.astype(np.float32))
+            app.client().set_position(q.astype(np.float32))
             rate.sleep()
             t += time_step
     except KeyboardInterrupt:

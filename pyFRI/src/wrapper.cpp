@@ -594,5 +594,6 @@ PYBIND11_MODULE(_pyFRI, m) {
       .def("connect", &AsyncClientApplication::connect)
       .def("wait", &AsyncClientApplication::wait)
       .def("is_ok", &AsyncClientApplication::is_ok)
+      .def("client", &AsyncClientApplication::client)
       .def("disconnect", &AsyncClientApplication::disconnect);
 }
