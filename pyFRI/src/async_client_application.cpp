@@ -1,4 +1,5 @@
 // Standard library
+#include <signal.h>
 #include <thread>
 
 // KUKA FRI-Client-SDK_Cpp (using version hosted at:
@@ -18,6 +19,8 @@ private:
   bool _fri_spinning;
 
   std::thread _fri_loop_thread;
+
+  struct sigaction _sig_int_handler;
 
   KUKA::FRI::UdpConnection _connection;
   AsyncLBRClient &_client;
@@ -51,7 +54,17 @@ public:
   AsyncClientApplication()
       : _client(*new AsyncLBRClient),
         _app(*new KUKA::FRI::ClientApplication(_connection, _client)),
-        _connected(false), _fri_spinning(false) {}
+        _connected(false), _fri_spinning(false) {
+    _sig_int_handler.sa_handler =
+        &AsyncClientApplication::wait_exception_handler;
+    sigemptyset(&_sig_int_handler.sa_mask);
+    _sig_int_handler.sa_flags = 0;
+    sigaction(SIGINT, &_sig_int_handler, NULL);
+  }
+
+  static void wait_exception_handler(int s) {
+    throw std::runtime_error("quitting async client application");
+  }
 
   bool connect(const int port, char *const remoteHost = NULL) {
 
