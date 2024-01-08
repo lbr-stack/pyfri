@@ -119,7 +119,7 @@ Then turn on the robot, connect your laptop via ethernet, and follow these steps
 
 You can find documentation for `pyFRI` in the [wiki](https://github.com/cmower/FRI-Client-SDK_Python/wiki).
 
-## Citation
+# Citation
 If you enjoyed using this repository for your work, we would really appreciate ❤️ if you could cite it, as it helps us to continue offering support.
 
 ```
