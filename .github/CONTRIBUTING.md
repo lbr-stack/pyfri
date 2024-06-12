@@ -13,8 +13,8 @@ Contributions are vital to this project. If you want to contribute a feature / f
 1. Open an issue:
   - Explain the issue and your solution
   - Request a new branch: `dev-feature`, e.g. `dev-my-new-demo`
-3. Fork this repository
-4. Create a [pull request](https://github.com/lbr-stack/pyFRI/pulls) against `dev-<feature>`
+2. Fork this repository
+3. Create a [pull request](https://github.com/lbr-stack/pyFRI/pulls) against `dev-<feature>`
 
 ### New FRI version
 Refer [README](https://github.com/lbr-stack/fri#contributing) for instructions.
