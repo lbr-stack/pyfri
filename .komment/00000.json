@@ -1,0 +1,217 @@
+[
+  {
+    "name": "filters.py",
+    "path": "pyFRI/tools/filters.py",
+    "content": {
+      "structured": {
+        "description": "Three classes: StateFilter, ExponentialStateFilter, and MovingAverageFilter, which are subclasses of ABC's abstract class StateFilter. These filters are used to smooth or average a sequence of values, such as time series data, to reduce noise and highlight trends. The classes use different methods to filter the data, including exponential smoothing with a parameter for controlling the smoothing level, and moving average filtering.",
+        "items": [
+          {
+            "id": "4fc5d738-da39-15b1-b944-b54021738842",
+            "ancestors": [],
+            "description": "Initializes a window of fixed size and appends elements to it using the `append()` method. It then filters the elements in the window using an abstract method.",
+            "attributes": [
+              {
+                "name": "_window_size",
+                "type_name": "int",
+                "description": "Used to control the size of the sliding window used for filtering."
+              },
+              {
+                "name": "reset",
+                "type_name": "instance",
+                "description": "Used to reset the internal buffer of the object to its initial state by clearing it of all elements."
+              }
+            ],
+            "name": "StateFilter",
+            "location": {
+              "start": 6,
+              "insert": 7,
+              "offset": " ",
+              "indent": 4,
+              "comment": null
+            },
+            "item_type": "class",
+            "length": 14,
+            "docLength": null
+          },
+          {
+            "id": "fb222aeb-9c23-64b1-464c-1432b304bcbf",
+            "ancestors": [
+              "4fc5d738-da39-15b1-b944-b54021738842"
+            ],
+            "description": "Sets the `window_size` attribute of an instance of `StateFilter`, which is used to control the size of the moving window for filtering states. The `reset()` method is also defined within the function, which resets the internal state of the filter.",
+            "params": [
+              {
+                "name": "window_size",
+                "type_name": "int",
+                "description": "Used to set the size of the sliding window used for computing moving averages."
+              }
+            ],
+            "returns": null,
+            "name": "__init__",
+            "location": {
+              "start": 7,
+              "insert": 8,
+              "offset": " ",
+              "indent": 8,
+              "comment": null
+            },
+            "item_type": "method",
+            "length": 3,
+            "docLength": null
+          },
+          {
+            "id": "b1e51236-70cd-f1aa-b94c-5a9f94cd9062",
+            "ancestors": [
+              "4fc5d738-da39-15b1-b944-b54021738842"
+            ],
+            "description": "In the `StateFilter` class inherited from `abc.ABC`, does not perform any operation as it is marked as `@abc.abstractmethod`.",
+            "params": [
+              {
+                "name": "x",
+                "type_name": "abcobject",
+                "description": "Used to represent any object that can be passed through an abstraction method."
+              }
+            ],
+            "returns": null,
+            "name": "filter",
+            "location": {
+              "start": 17,
+              "insert": 19,
+              "offset": " ",
+              "indent": 8,
+              "comment": null
+            },
+            "item_type": "method",
+            "length": 3,
+            "docLength": null
+          },
+          {
+            "id": "980780df-53ca-01a5-ad45-f91cc65929a8",
+            "ancestors": [],
+            "description": "Filters time-series data by taking an exponentially smoothed average of the previous values, with a smoothing parameter to control the degree of smoothing.",
+            "attributes": [
+              {
+                "name": "_smooth",
+                "type_name": "float",
+                "description": "Set to a value of 0.02 during initialization, which represents the smoothing parameter used to blend the input values with the previous values in the window."
+              }
+            ],
+            "name": "ExponentialStateFilter",
+            "location": {
+              "start": 22,
+              "insert": 23,
+              "offset": " ",
+              "indent": 4,
+              "comment": null
+            },
+            "item_type": "class",
+            "length": 12,
+            "docLength": null
+          },
+          {
+            "id": "9deaa9bd-88f5-95b3-9d4b-805df833dc95",
+            "ancestors": [
+              "980780df-53ca-01a5-ad45-f91cc65929a8"
+            ],
+            "description": "Sets up an instance of the `ExponentialStateFilter` class by initializing its internal variable `smooth` to a value passed as an argument, and then calls the parent class's `__init__` method to initialize the filter with a default value of 1.",
+            "params": [
+              {
+                "name": "smooth",
+                "type_name": "float",
+                "description": "Set to `0.02`. Its value influences the initial position of the random walk."
+              }
+            ],
+            "returns": null,
+            "name": "__init__",
+            "location": {
+              "start": 23,
+              "insert": 24,
+              "offset": " ",
+              "indent": 8,
+              "comment": null
+            },
+            "item_type": "method",
+            "length": 3,
+            "docLength": null
+          },
+          {
+            "id": "0f1875a4-2763-91b9-7f4d-2b1e605d0ca3",
+            "ancestors": [
+              "980780df-53ca-01a5-ad45-f91cc65929a8"
+            ],
+            "description": "Takes an input `x` and applies an exponential smoothing filter to it, appending the smoothed value to a internal list. The filter uses a parameter `smooth` to control the degree of smoothing.",
+            "params": [
+              {
+                "name": "x",
+                "type_name": "object",
+                "description": "Used to represent an input value that is to be filtered using a smoothing window."
+              }
+            ],
+            "returns": {
+              "type_name": "nparray",
+              "description": "A smoothed version of the input value `x`, created by multiplying it with a smoothing factor and adding the initial value of the window array."
+            },
+            "name": "filter",
+            "location": {
+              "start": 27,
+              "insert": 28,
+              "offset": " ",
+              "indent": 8,
+              "comment": null
+            },
+            "item_type": "method",
+            "length": 7,
+            "docLength": null
+          },
+          {
+            "id": "d3a882da-1a3f-6c89-0345-b747725b7bb1",
+            "ancestors": [],
+            "description": "Computes and returns the moving average of a sequence of values using the provided window size.",
+            "attributes": [],
+            "name": "MovingAverageFilter",
+            "location": {
+              "start": 36,
+              "insert": 37,
+              "offset": " ",
+              "indent": 4,
+              "comment": null
+            },
+            "item_type": "class",
+            "length": 4,
+            "docLength": null
+          },
+          {
+            "id": "be20df6e-79de-4b95-ca4b-05889468ac88",
+            "ancestors": [
+              "d3a882da-1a3f-6c89-0345-b747725b7bb1"
+            ],
+            "description": "Appends an input value to a internal buffer and calculates the mean of the buffer along the axis 0.",
+            "params": [
+              {
+                "name": "x",
+                "type_name": "object",
+                "description": "Passed to the method for filtering."
+              }
+            ],
+            "returns": {
+              "type_name": "npmean",
+              "description": "A measure of central tendency of a set of numbers."
+            },
+            "name": "filter",
+            "location": {
+              "start": 37,
+              "insert": 38,
+              "offset": " ",
+              "indent": 8,
+              "comment": null
+            },
+            "item_type": "method",
+            "length": 3,
+            "docLength": null
+          }
+        ]
+      }
+    }
+  }
+]
