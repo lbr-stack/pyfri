@@ -20,6 +20,9 @@
 #include "friUdpConnection.h"
 #include "fri_config.h"
 
+// Local
+#include "async_client_application.cpp"
+
 // Function for returning the current time
 long long getCurrentTimeInNanoseconds() {
   using namespace std::chrono;
@@ -33,6 +36,43 @@ long long getCurrentTimeInNanoseconds() {
   // Convert the duration to a long long value representing nanoseconds
   return duration.count();
 }
+
+//
+// Rate class
+//
+//   Based on rospy.Rate implementation:
+//   https://github.com/ros/ros_comm/blob/noetic-devel/clients/rospy/src/rospy/timer.py
+//
+class Rate {
+
+public:
+  Rate(float hz) {
+    float sleep_dur = 1000000000.0 / hz;
+    _sleep_dur = static_cast<long long>(sleep_dur);
+    _last_time = getCurrentTimeInNanoseconds();
+  }
+
+  void sleep() {
+    long long curr_time = getCurrentTimeInNanoseconds();
+    std::this_thread::sleep_for(
+        std::chrono::nanoseconds(_remaining(curr_time)));
+    _last_time += _sleep_dur;
+    if (curr_time - _last_time > _sleep_dur * 2)
+      _last_time = curr_time;
+  }
+
+private:
+  long long _last_time;
+  long long _sleep_dur;
+
+  long long _remaining(long long curr_time) {
+
+    if (_last_time > curr_time)
+      _last_time = curr_time;
+
+    return _sleep_dur - (curr_time - _last_time);
+  }
+};
 
 // Make LBRClient a Python abstract class
 class PyLBRClient : public KUKA::FRI::LBRClient {
@@ -199,8 +239,29 @@ private:
   }
 };
 
-// Python bindings
+// Define py namespace
 namespace py = pybind11;
+
+// Helper methods
+void check_py_array(py::array_t<double> arr, int size) {
+  if (arr.ndim() != 1 || PyArray_DIMS(arr.ptr())[0] != size) {
+    std::string errmsg = "Array must have shape (";
+    errmsg += std::to_string(size);
+    errmsg += ",).";
+    throw std::runtime_error(errmsg);
+  }
+}
+
+double *cvt_py_array(py::array_t<double> arr, int size) {
+  check_py_array(arr, size);
+  return static_cast<double *>(arr.request().ptr);
+}
+
+void not_exposed(std::string name) {
+  throw std::runtime_error(name + " is not yet exposed.");
+}
+
+// Python bindings
 
 PYBIND11_MODULE(_pyFRI, m) {
   m.doc() = "Python bindings for the KUKA FRI Client SDK. THIS IS NOT A KUKA "
@@ -413,52 +474,32 @@ PYBIND11_MODULE(_pyFRI, m) {
 #elif FRI_VERSION_MAJOR == 2
     .def("getMeasuredCartesianPose",
 	 [](const KUKA::FRI::LBRState &self) {
-
-             // Declare variables
-             double data[KUKA::FRI::LBRState::NUMBER_OF_JOINTS];
-             float dataf[KUKA::FRI::LBRState::NUMBER_OF_JOINTS];
-
-             // Retrieve state
-             memcpy(data, self.getMeasuredCartesianPose(),
-                    KUKA::FRI::LBRState::NUMBER_OF_JOINTS * sizeof(double));
-
-             // Parse: double -> float
-             for (int i = 0; i < KUKA::FRI::LBRState::NUMBER_OF_JOINTS; i++)
-               dataf[i] = (float)data[i];
-
-             return py::array_t<float>({KUKA::FRI::LBRState::NUMBER_OF_JOINTS},
-                                       dataf);
+	   not_exposed("getMeasuredCartesianPose");
            })
       .def("getMeasuredCartesianPoseAsMatrix",
            [](const KUKA::FRI::LBRState &self) {
-	     // TODO
-	     throw std::runtime_error("getMeasuredCartesianPoseAsMatrix is not yet exposed (use .getMeasuredCartesianPose instead).");
+	     not_exposed("getMeasuredCartesianPoseAsMatrix");
            })
       .def("getIpoCartesianPose",
            [](const KUKA::FRI::LBRState &self) {
-	     // TODO
-	     // Currently, FRI Cartesian Overlay is not supported by FRI-Client-SDK_Python.
-	     // IPO Cartesian Pose not available when FRI Cartesian Overlay is not active.
-	     throw std::runtime_error("getIpoCartesianPose is not yet exposed.");
+	     not_exposed("getIpoCartesianPose");
            })
       .def("getIpoCartesianPoseAsMatrix",
            [](const KUKA::FRI::LBRState &self) {
-	     // TODO
-	     // Currently, FRI Cartesian Overlay is not supported by FRI-Client-SDK_Python.
-	     // IPO Cartesian Pose not available when FRI Cartesian Overlay is not active.
-	     throw std::runtime_error("getIpoCartesianPoseAsMatrix is not yet exposed.");
+	     not_exposed("getIpoCartesianPoseAsMatrix");
            })
       .def("getMeasuredRedundancyValue",
-           &KUKA::FRI::LBRState::getMeasuredRedundancyValue)
+	   [](KUKA::FRI::LBRState &self) {
+	     not_exposed("getMeasuredRedundancyValue");
+	   })	   
       .def("getIpoRedundancyValue",
 	   [](KUKA::FRI::LBRState &self) {
-	     // TODO
-	     // Currently, FRI Cartesian Overlay is not supported by FRI-Client-SDK_Python.
-	     // IPO redundancy value not available when FRI Cartesian Overlay is not active.
-	     throw std::runtime_error("getIpoRedundancyValue is not yet exposed.");
+	     not_exposed("getIpoRedundancyValue");
 	   })
       .def("getRedundancyStrategy",
-           &KUKA::FRI::LBRState::getRedundancyStrategy)
+	   [](KUKA::FRI::LBRState &self) {
+	     not_exposed("getRedundancyStrategy");
+	   })
 #endif
       ; // NOTE: this completes LBRState
 
@@ -466,61 +507,23 @@ PYBIND11_MODULE(_pyFRI, m) {
       .def(py::init<>())
       .def("setJointPosition",
            [](KUKA::FRI::LBRCommand &self, py::array_t<double> values) {
-             if (values.ndim() != 1 ||
-                 PyArray_DIMS(values.ptr())[0] !=
-                     KUKA::FRI::LBRState::NUMBER_OF_JOINTS) {
-               throw std::runtime_error(
-                   "Input array must have shape (" +
-                   std::to_string(KUKA::FRI::LBRState::NUMBER_OF_JOINTS) +
-                   ",)!");
-             }
-             auto buf = values.request();
-             const double *data = static_cast<double *>(buf.ptr);
-             self.setJointPosition(data);
+             self.setJointPosition(cvt_py_array(values, NDOF));
            })
       .def("setWrench",
            [](KUKA::FRI::LBRCommand &self, py::array_t<double> values) {
-             if (values.ndim() != 1 ||
-                 PyArray_DIMS(values.ptr())[0] !=
-                     6 // [F_x, F_y, F_z, tau_A, tau_B, tau_C]
-             ) {
-               throw std::runtime_error(
-                   "Input array must have shape (" +
-                   std::to_string(KUKA::FRI::LBRState::NUMBER_OF_JOINTS) +
-                   ",)!");
-             }
-             auto buf = values.request();
-             const double *data = static_cast<double *>(buf.ptr);
-             self.setWrench(data);
+             self.setWrench(cvt_py_array(values, NCART));
            })
       .def("setTorque",
            [](KUKA::FRI::LBRCommand &self, py::array_t<double> values) {
-             if (values.ndim() != 1 ||
-                 PyArray_DIMS(values.ptr())[0] !=
-                     KUKA::FRI::LBRState::NUMBER_OF_JOINTS) {
-               throw std::runtime_error(
-                   "Input array must have shape (" +
-                   std::to_string(KUKA::FRI::LBRState::NUMBER_OF_JOINTS) +
-                   ",)!");
-             }
-             auto buf = values.request();
-             const double *data = static_cast<double *>(buf.ptr);
-             self.setTorque(data);
+             self.setTorque(cvt_py_array(values, NDOF));
            })
       .def("setCartesianPose",
            [](KUKA::FRI::LBRCommand &self, py::array_t<double> values) {
-             // TODO
-             // Currently, FRI Cartesian Overlay is not supported by
-             // FRI-Client-SDK_Python.
-             throw std::runtime_error("setCartesianPose is not yet exposed.");
+             not_exposed("setCartesianPose");
            })
       .def("setCartesianPoseAsMatrix",
            [](KUKA::FRI::LBRCommand &self, py::array_t<double> values) {
-             // TODO
-             // Currently, FRI Cartesian Overlay is not supported by
-             // FRI-Client-SDK_Python.
-             throw std::runtime_error(
-                 "setCartesianPoseAsMatrix is not yet exposed.");
+             not_exposed("setCartesianPoseAsMatrix");
            })
       .def("setBooleanIOValue", &KUKA::FRI::LBRCommand::setBooleanIOValue)
       .def("setDigitalIOValue", &KUKA::FRI::LBRCommand::setDigitalIOValue)
@@ -541,4 +544,56 @@ PYBIND11_MODULE(_pyFRI, m) {
       .def("collect_data", &PyClientApplication::collect_data)
       .def("disconnect", &PyClientApplication::disconnect)
       .def("step", &PyClientApplication::step);
+
+  py::class_<Rate>(m, "Rate").def(py::init<float>()).def("sleep", &Rate::sleep);
+
+  py::class_<AsyncLBRClient>(m, "AsyncClient")
+      .def(py::init<>())
+      .def("set_pid_position_gains",
+           [](AsyncLBRClient &self, py::array_t<double> Kp,
+              py::array_t<double> Ki, py::array_t<double> Kd) {
+             self.set_pid_position_gains(cvt_py_array(Kp, NDOF),
+                                         cvt_py_array(Ki, NDOF),
+                                         cvt_py_array(Kd, NDOF));
+           })
+      .def("set_pid_wrench_gains",
+           [](AsyncLBRClient &self, py::array_t<double> Kp,
+              py::array_t<double> Ki, py::array_t<double> Kd) {
+             self.set_pid_wrench_gains(cvt_py_array(Kp, NCART),
+                                       cvt_py_array(Ki, NCART),
+                                       cvt_py_array(Kd, NCART));
+           })
+      .def("set_pid_torque_gains",
+           [](AsyncLBRClient &self, py::array_t<double> Kp,
+              py::array_t<double> Ki, py::array_t<double> Kd) {
+             self.set_pid_torque_gains(cvt_py_array(Kp, NDOF),
+                                       cvt_py_array(Ki, NDOF),
+                                       cvt_py_array(Kd, NDOF));
+           })
+      .def("robotState", &AsyncLBRClient::robotState)
+      .def("set_position",
+           [](AsyncLBRClient &self, py::array_t<double> position) {
+             self.set_position(cvt_py_array(position, NDOF));
+           })
+      .def("set_wrench",
+           [](AsyncLBRClient &self, py::array_t<double> wrench) {
+             self.set_wrench(cvt_py_array(wrench, NCART));
+           })
+      .def("set_torque", [](AsyncLBRClient &self, py::array_t<double> torque) {
+        self.set_torque(cvt_py_array(torque, NDOF));
+      });
+
+  py::class_<AsyncClientApplication>(m, "AsyncClientApplication")
+      .def(py::init([]() {
+        auto app =
+            new AsyncClientApplication(); // Create a new instance using new
+        std::unique_ptr<AsyncClientApplication> ptr(
+            app);   // Wrap it in a unique_ptr
+        return ptr; // Return the unique_ptr
+      }))
+      .def("connect", &AsyncClientApplication::connect)
+      .def("wait", &AsyncClientApplication::wait)
+      .def("is_ok", &AsyncClientApplication::is_ok)
+      .def("client", &AsyncClientApplication::client)
+      .def("disconnect", &AsyncClientApplication::disconnect);
 }
