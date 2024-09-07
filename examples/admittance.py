@@ -1,11 +1,28 @@
+import numpy as np
 import optas
 from robot import load_robot
 
-import numpy as np
-
 
 class AdmittanceController:
+    """
+    Initializes and manages an admittance controller for a robotic arm, which
+    adjusts the arm's movement based on external forces or velocities while
+    maintaining joint limits and velocity constraints. It takes as input the robot's
+    current state and desired velocity, returning updated joint positions.
+
+    """
     def __init__(self, lbr_med_num):
+        """
+        Initializes an optimization problem to control the motion of a robot
+        end-effector with desired velocity and minimum joint velocities, while
+        respecting joint limits and actuated joint range.
+
+        Args:
+            lbr_med_num (int | str): Used to load a specific robot model from an
+                external source, such as the KUKA LBR Med arm. It likely identifies
+                the robot's numerical ID or configuration.
+
+        """
         # Setup robot
         self.ee_link = "lbr_link_ee"
         self.robot = load_robot(lbr_med_num, [1])
@@ -51,6 +68,29 @@ class AdmittanceController:
         self.vlim = np.concatenate(([0.2, 0.2, 0.2], np.deg2rad([40] * 3)))
 
     def __call__(self, qc, wr, dt):
+        """
+        Simulates the dynamic behavior of an admittance-controlled system, updating
+        the generalized force and position based on initial conditions, solver
+        settings, and a time step. It returns the updated position at the specified
+        time.
+
+        Args:
+            qc (float | int): Referenced as "qc" in several places within the code,
+                specifically when resetting parameters for the solver. It represents
+                a quantity or value in the simulation.
+            wr (float): Used to calculate the value of `vg` by multiplying it with
+                the `gain` attribute of the instance, possibly scaling or filtering
+                the input value.
+            dt (float): Used as time step in solving an initial value problem
+                through numerical integration, often representing the size of each
+                time step or increment.
+
+        Returns:
+            float: The updated quality control value (`qg`) after solving a
+            differential equation, representing the state at the next time step
+            with respect to current state and input parameters.
+
+        """
         # Admittance control: map force -> velocity
         vg = self.gain * wr
 

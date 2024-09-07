@@ -3,7 +3,6 @@ from robot import load_robot
 
 
 class IK:
-
     """
 
     This class solves the following problem
@@ -35,6 +34,17 @@ class IK:
     """
 
     def __init__(self, lbr_med_num):
+        """
+        Initializes an instance, preparing it for inverse kinematics computation
+        using OptAS. It sets up parameters and constraints, such as joint velocity
+        limits and end-effector position goal, to be solved by a QP solver.
+
+        Args:
+            lbr_med_num (int): Used to identify and load a specific KUKA LBR Med
+                robot model from a database or library of robots. It specifies the
+                robot's medium variant number.
+
+        """
         # Setup robot
         ee_link = "lbr_link_ee"
         self.robot = load_robot(lbr_med_num, [0, 1])
@@ -77,6 +87,28 @@ class IK:
         self.solution = None
 
     def __call__(self, qc, vg, dt):
+        """
+        Calls the solver to obtain an inverse kinematics solution for a given robot
+        configuration, visual geometry and time step. If successful, it returns
+        the desired joint angles; otherwise, it prints a warning and returns the
+        original configuration.
+
+        Args:
+            qc (optas.Tensor): Used to initialize the solver's initial state, when
+                no solution is provided. It appears to represent control pulses,
+                possibly for quantum systems. Its shape and values are concatenated
+                horizontally with itself.
+            vg (float | np.ndarray): Used to reset parameters for the solver,
+                likely representing a time step or grid spacing value within a
+                numerical method or algorithm.
+            dt (float): Used as an input to the solver, likely representing time
+                steps or other temporal units relevant to the solution being computed.
+
+        Returns:
+            ndarray|str: A flattened numpy array or the input parameter `qc`, in
+            case the solver fails to find a solution, indicating a warning condition.
+
+        """
         # Reset initial seed with previous solution
         if self.solution is not None:
             self.solver.reset_initial_seed(self.solution)

@@ -1,12 +1,12 @@
-import sys
 import argparse
+import sys
 from collections import OrderedDict
-
-# FRI Client: https://github.com/cmower/FRI-Client-SDK_Python
-import pyFRI as fri
 
 # PyGame: https://www.pygame.org/news
 import pygame
+
+# FRI Client: https://github.com/cmower/FRI-Client-SDK_Python
+import pyFRI as fri
 
 pygame.init()
 
@@ -20,6 +20,11 @@ from ik import IK
 
 
 def print_instructions():
+    """
+    Prints a set of instructions to control a robot using direction keys and task
+    axes on the PyGame window.
+
+    """
     print("\n")
     print("-" * 65)
     print("-- Control robot joints using LEFT/RIGHT direction keys.       --")
@@ -29,7 +34,39 @@ def print_instructions():
 
 
 class Keyboard:
+    """
+    Handles keyboard events to control tasks with velocities. It maps keys to task
+    indices and velocities, enabling task activation/deactivation and velocity
+    adjustments using arrow keys or dedicated key shortcuts. It also supports quit
+    event handling.
+
+    Attributes:
+        max_task_velocity (float): 0.04 by default. It represents the maximum
+            velocity for a task, which can be scaled down using the `self.task_velocity`
+            attribute when keys are held to control task movement speed.
+        task_index (None|int): Set to a specific key when it is pressed and its
+            corresponding task label is turned ON or OFF, otherwise, its value
+            remains unchanged until the corresponding key is pressed again.
+        task_velocity (float): 0.0 by default. It accumulates changes based on
+            keyboard input, indicating how fast a task should be executed with
+            positive values representing increasing speed and negative values
+            representing decreasing speed.
+        key_to_dir_map (Dict[pygameK_LEFT,float]|Dict[pygameK_RIGHT,float]):
+            Initialized with mappings from pygame keyboard keys to floating point
+            numbers representing direction values. The map assigns a value of 1.0
+            to the LEFT key and -1.0 to the RIGHT key.
+        key_task_map (OrderedDict[pygameK_x|pygameK_y||pygameK_a,str]): Initialized
+            to store key-value pairs where keys are specific keyboard keys (e.g.,
+            pygame.K_x) and values are corresponding task labels (e.g., "x").
+
+    """
     def __init__(self):
+        """
+        Initializes game window settings, defines task velocity and mapping, sets
+        initial key-task mappings, and establishes relationships between keyboard
+        keys and their corresponding tasks or directions.
+
+        """
         pygame.display.set_mode((300, 300))
 
         self.max_task_velocity = 0.04
@@ -51,6 +88,18 @@ class Keyboard:
         self.key_task_map[pygame.K_a] = "rz"
 
     def __call__(self):
+        """
+        Handles Pygame events to control tasks and task velocity by keyboard input,
+        allowing users to turn tasks on/off with specific keys and adjust
+        direction/velocity with others. It also exits the program upon QUIT or
+        ESCAPE key press.
+
+        Returns:
+            Tuple[int,float]: A tuple containing two values: the current task index
+            and the scaled velocity of the task. The task index and velocity are
+            computed based on user input events.
+
+        """
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 # User closed pygame window -> shutdown
@@ -89,7 +138,36 @@ class Keyboard:
 
 
 class TeleopClient(fri.LBRClient):
+    """
+    Handles robot teleoperation, monitoring its state and sending commands to the
+    robot based on user input from a keyboard or other interface. It implements a
+    kinematic inverse solution for joint position updates.
+
+    Attributes:
+        ik (Callable[[npndarray,npndarray,float],npndarray]): Used to perform
+            inverse kinematics calculations, mapping desired joint velocities to
+            joint positions. Its implementation is not provided in this code snippet.
+        keyboard (Keyboard|friLBRClient): Used to get tasks from a keyboard input,
+            where it returns a task index and velocity goal for each key pressed.
+            It appears to be responsible for translating user input into robot commands.
+        torques (npndarray[float32]): Initialized with zeros, representing the
+            torques applied to each joint of a robot arm. It is used to set torque
+            commands when the client command mode is set to TORQUE.
+
+    """
     def __init__(self, ik, keyboard):
+        """
+        Initializes an instance with input kinematics (ik) and keyboard controls.
+        It sets up the LBR state, storing zeros for torques, indicating no initial
+        torque.
+
+        Args:
+            ik (fri.IK): Initialized as an attribute `self.ik`. The exact nature
+                of this IK object is not provided, but it is assumed to be related
+                to inverse kinematics calculations.
+            keyboard (object): Assigned to an instance variable named `self.keyboard`.
+
+        """
         super().__init__()
         self.ik = ik
         self.keyboard = keyboard
@@ -99,6 +177,19 @@ class TeleopClient(fri.LBRClient):
         pass
 
     def onStateChange(self, old_state, new_state):
+        """
+        Prints state change notifications and updates internal variables when the
+        client enters a monitoring ready state, including resetting torque values
+        and queue.
+
+        Args:
+            old_state (ESessionState | str): Used to store the previous state of
+                the session before it changes.
+            new_state (fri.ESessionState | Enum): Used to determine whether an
+                instruction should be printed, specifically when it reaches the
+                'MONITORING_READY' state.
+
+        """
         print(f"State changed from {old_state} to {new_state}")
 
         if new_state == fri.ESessionState.MONITORING_READY:
@@ -108,6 +199,13 @@ class TeleopClient(fri.LBRClient):
             print_instructions()
 
     def waitForCommand(self):
+        """
+        Synchronizes joint positions and torque values with the robot's state,
+        ensuring that any commands sent by the client are applied to the robot's
+        current configuration. It sets joint positions and torque values according
+        to the provided data types.
+
+        """
         self.q = self.robotState().getIpoJointPosition()
         self.robotCommand().setJointPosition(self.q.astype(np.float32))
 
@@ -115,6 +213,12 @@ class TeleopClient(fri.LBRClient):
             self.robotCommand().setTorque(self.torques.astype(np.float32))
 
     def command(self):
+        """
+        Updates the robot's joint positions and torques based on user input from
+        the keyboard, utilizing inverse kinematics to compute optimal joint values
+        for a specific task index and corresponding velocity goal.
+
+        """
         task_index, vgoal = self.keyboard()
 
         if isinstance(task_index, int):
@@ -130,6 +234,16 @@ class TeleopClient(fri.LBRClient):
 
 
 def get_arguments():
+    """
+    Parses command line arguments using the argparse module to provide a structured
+    way to retrieve input parameters for a KUKA Sunrise Controller communication
+    script, such as hostname, port, and LBR Med version number.
+
+    Returns:
+        argparseNamespace: An object containing attributes for each argument passed
+        to it.
+
+    """
     parser = argparse.ArgumentParser(description="LRBJointSineOverlay example.")
     parser.add_argument(
         "--hostname",
@@ -157,7 +271,17 @@ def get_arguments():
 
 
 def main():
-    print("Running FRI Version:", fri.FRI_VERSION)
+    """
+    Establishes a connection to a KUKA Sunrise controller, initializes an application
+    using the client and keyboard, and enters a loop where it continuously steps
+    through the application until a disconnect or idle session state is encountered.
+
+    Returns:
+        int|None: 0 on successful execution and 1 if connection to KUKA Sunrise
+        controller fails.
+
+    """
+    print("Running FRI Version:", fri.FRI_CLIENT_VERSION)
 
     args = get_arguments()
     ik = IK(args.lbr_ver)
