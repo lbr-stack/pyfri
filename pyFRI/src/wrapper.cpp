@@ -6,9 +6,6 @@
 #include <memory>
 #include <string>
 
-// NumPy: https://numpy.org/
-#include <numpy/arrayobject.h>
-
 // pybind: https://pybind11.readthedocs.io/en/stable/
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
@@ -467,8 +464,7 @@ PYBIND11_MODULE(_pyFRI, m) {
       .def("setJointPosition",
            [](KUKA::FRI::LBRCommand &self, py::array_t<double> values) {
              if (values.ndim() != 1 ||
-                 PyArray_DIMS(values.ptr())[0] !=
-                     KUKA::FRI::LBRState::NUMBER_OF_JOINTS) {
+                 values.shape(0) != KUKA::FRI::LBRState::NUMBER_OF_JOINTS) {
                throw std::runtime_error(
                    "Input array must have shape (" +
                    std::to_string(KUKA::FRI::LBRState::NUMBER_OF_JOINTS) +
@@ -481,8 +477,7 @@ PYBIND11_MODULE(_pyFRI, m) {
       .def("setWrench",
            [](KUKA::FRI::LBRCommand &self, py::array_t<double> values) {
              if (values.ndim() != 1 ||
-                 PyArray_DIMS(values.ptr())[0] !=
-                     6 // [F_x, F_y, F_z, tau_A, tau_B, tau_C]
+                 values.shape(0) != 6 // [F_x, F_y, F_z, tau_A, tau_B, tau_C]
              ) {
                throw std::runtime_error(
                    "Input array must have shape (" +
@@ -496,8 +491,7 @@ PYBIND11_MODULE(_pyFRI, m) {
       .def("setTorque",
            [](KUKA::FRI::LBRCommand &self, py::array_t<double> values) {
              if (values.ndim() != 1 ||
-                 PyArray_DIMS(values.ptr())[0] !=
-                     KUKA::FRI::LBRState::NUMBER_OF_JOINTS) {
+                 values.shape(0) != KUKA::FRI::LBRState::NUMBER_OF_JOINTS) {
                throw std::runtime_error(
                    "Input array must have shape (" +
                    std::to_string(KUKA::FRI::LBRState::NUMBER_OF_JOINTS) +
