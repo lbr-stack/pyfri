@@ -16,6 +16,8 @@ set(FRI_BUILD_EXAMPLES OFF)
 set(FRI_CLIENT_VERSION_MAJOR 1 CACHE STRING "The FRI client major version." FORCE)
 set(FRI_CLIENT_VERSION_MINOR 15 CACHE STRING "The FRI client minor version." FORCE)
 
+find_package(Python 3.10 COMPONENTS NumPy REQUIRED)
+
 # fetch the fri depending on the version
 FetchContent_Declare(
     FRI
@@ -35,4 +37,4 @@ target_include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/pyFRI/src
 )
 
-target_link_libraries(_pyFRI PRIVATE FRIClient)
+target_link_libraries(_pyFRI PRIVATE FRIClient Python::NumPy)

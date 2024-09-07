@@ -28,7 +28,6 @@ PLAT_TO_CMAKE = {
     "win-arm64": "ARM64",
 }
 
-
 # A CMakeExtension needs a sourcedir instead of a file list.
 # The name must be the _single_ output extension from the CMake build.
 # If you need multiple extensions, see scikit-build.
@@ -144,8 +143,8 @@ class CMakeBuild(build_ext):
 setup(
     name="pyFRI",
     version="1.2.0",
-    author="Christopher E. Mower",
-    author_email="christopher.mower@kcl.ac.uk",
+    author="Christopher E. Mower, Martin Huber",
+    author_email="christopher.mower@kcl.ac.uk, m.huber_1994@hotmail.de",
     description="Python bindings for the FRI Client SDK library.",
     long_description="",
     packages=find_packages(),
