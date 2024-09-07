@@ -24,4 +24,4 @@ jobs:
         with:
           python-version: "3.x"
       - name: Test installation
-        run: export FRI_CLIENT_VERSION=${{ matrix.fri_version }} && pip3 install .
+        run: export FRI_CLIENT_VERSION=${{ matrix.fri_version }} && pip3 install --verbose .
