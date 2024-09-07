@@ -134,7 +134,10 @@ class CMakeBuild(build_ext):
                 build_args += [f"-j{self.parallel}"]
 
         # Set the FRI version number
-        cmake_args += [f"-DFRI_VERSION={FRI_VERSION}"]
+        fri_ver_major = FRI_VERSION.split(".")[0]
+        fri_ver_minor = FRI_VERSION.split(".")[1]
+        cmake_args += [f"-DFRI_VERSION_MAJOR={fri_ver_major}"]
+        cmake_args += [f"-DFRI_VERSION_MINOR={fri_ver_minor}"]
 
         build_temp = Path(self.build_temp) / ext.name
         if not build_temp.exists():
