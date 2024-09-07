@@ -10,7 +10,6 @@ from collections import deque
 
 
 class JointStateEstimator:
-
     """
 
     JointStateEstimator
@@ -85,7 +84,6 @@ class JointStateEstimator:
 
 
 class TaskSpaceStateEstimator:
-
     """
 
     TaskSpaceStateEstimator
@@ -167,7 +165,6 @@ class FRIExternalTorqueEstimator(ExternalTorqueEstimator):
 
 
 class WrenchEstimator(abc.ABC):
-
     """
 
     WrenchEstimator
@@ -238,7 +235,6 @@ class WrenchEstimator(abc.ABC):
 
 
 class WrenchEstimatorJointOffset(WrenchEstimator):
-
     """
 
     WrenchEstimatorJointOffset
@@ -261,7 +257,6 @@ class WrenchEstimatorJointOffset(WrenchEstimator):
 
 
 class WrenchEstimatorTaskOffset(WrenchEstimator):
-
     """
 
     WrenchEstimatorTaskOffset

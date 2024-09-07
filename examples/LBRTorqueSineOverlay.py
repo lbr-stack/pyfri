@@ -1,9 +1,10 @@
-import sys
-import math
 import argparse
-import pyFRI as fri
+import math
+import sys
 
 import numpy as np
+
+import pyFRI as fri
 
 
 class LBRTorqueSineOverlayClient(fri.LBRClient):
@@ -98,10 +99,12 @@ def get_arguments():
 
 
 def main():
-    print("Running FRI Version:", fri.FRI_VERSION)
+    print("Running FRI Version:", fri.FRI_CLIENT_VERSION)
 
     args = get_arguments()
-    client = LBRTorqueSineOverlayClient(args.joint_mask, args.freq_hz, args.torque_amplitude)
+    client = LBRTorqueSineOverlayClient(
+        args.joint_mask, args.freq_hz, args.torque_amplitude
+    )
     app = fri.ClientApplication(client)
     success = app.connect(args.port, args.hostname)
 

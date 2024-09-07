@@ -16,9 +16,9 @@
 // KUKA FRI-Client-SDK_Cpp (using version hosted at:
 // https://github.com/cmower/FRI-Client-SDK_Cpp)
 #include "friClientApplication.h"
+#include "friClientVersion.h"
 #include "friLBRClient.h"
 #include "friUdpConnection.h"
-#include "fri_config.h"
 
 // Function for returning the current time
 long long getCurrentTimeInNanoseconds() {
@@ -206,10 +206,10 @@ PYBIND11_MODULE(_pyFRI, m) {
   m.doc() = "Python bindings for the KUKA FRI Client SDK. THIS IS NOT A KUKA "
             "PRODUCT.";
 
-  m.attr("FRI_VERSION_MAJOR") = FRI_VERSION_MAJOR;
-  m.attr("FRI_VERSION_MINOR") = FRI_VERSION_MINOR;
-  m.attr("FRI_VERSION") = std::to_string(FRI_VERSION_MAJOR) + "." +
-                          std::to_string(FRI_VERSION_MINOR);
+  m.attr("FRI_CLIENT_VERSION_MAJOR") = FRI_CLIENT_VERSION_MAJOR;
+  m.attr("FRI_CLIENT_VERSION_MINOR") = FRI_CLIENT_VERSION_MINOR;
+  m.attr("FRI_CLIENT_VERSION") = std::to_string(FRI_CLIENT_VERSION_MAJOR) +
+                                 "." + std::to_string(FRI_CLIENT_VERSION_MINOR);
 
   py::enum_<KUKA::FRI::ESessionState>(m, "ESessionState")
       .value("IDLE", KUKA::FRI::ESessionState::IDLE)
@@ -262,9 +262,9 @@ PYBIND11_MODULE(_pyFRI, m) {
       .value("NO_COMMAND_MODE", KUKA::FRI::EClientCommandMode::NO_COMMAND_MODE)
       .value("WRENCH", KUKA::FRI::EClientCommandMode::WRENCH)
       .value("TORQUE", KUKA::FRI::EClientCommandMode::TORQUE)
-#if FRI_VERSION_MAJOR == 1
+#if FRI_CLIENT_VERSION_MAJOR == 1
       .value("POSITION", KUKA::FRI::EClientCommandMode::POSITION)
-#elif FRI_VERSION_MAJOR == 2
+#elif FRI_CLIENT_VERSION_MAJOR == 2
       .value("JOINT_POSITION", KUKA::FRI::EClientCommandMode::JOINT_POSITION)
       .value("CARTESIAN_POSE", KUKA::FRI::EClientCommandMode::CARTESIAN_POSE)
 #endif
@@ -276,7 +276,7 @@ PYBIND11_MODULE(_pyFRI, m) {
       .value("CARTESIAN", KUKA::FRI::EOverlayType::CARTESIAN)
       .export_values();
 
-#if FRI_VERSION_MAJOR == 2
+#if FRI_CLIENT_VERSION_MAJOR == 2
   py::enum_<KUKA::FRI::ERedundancyStrategy>(m, "ERedundancyStrategy")
       .value("E1", KUKA::FRI::ERedundancyStrategy::E1)
       .value("NO_STRATEGY", KUKA::FRI::ERedundancyStrategy::NO_STRATEGY)
@@ -392,7 +392,7 @@ PYBIND11_MODULE(_pyFRI, m) {
       .def("getBooleanIOValue", &KUKA::FRI::LBRState::getBooleanIOValue)
       .def("getDigitalIOValue", &KUKA::FRI::LBRState::getDigitalIOValue)
       .def("getAnalogIOValue", &KUKA::FRI::LBRState::getAnalogIOValue)
-#if FRI_VERSION_MAJOR == 1
+#if FRI_CLIENT_VERSION_MAJOR == 1
       .def("getCommandedJointPosition",
            [](const KUKA::FRI::LBRState &self) {
              // Declare variables
@@ -410,7 +410,7 @@ PYBIND11_MODULE(_pyFRI, m) {
              return py::array_t<float>({KUKA::FRI::LBRState::NUMBER_OF_JOINTS},
                                        dataf);
            })
-#elif FRI_VERSION_MAJOR == 2
+#elif FRI_CLIENT_VERSION_MAJOR == 2
     .def("getMeasuredCartesianPose",
 	 [](const KUKA::FRI::LBRState &self) {
 

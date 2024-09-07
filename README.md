@@ -1,5 +1,8 @@
 # pyFRI
 
+[![License](https://img.shields.io/github/license/lbr-stack/pyFRI)](https://github.com/lbr-stack/pyFRI/tree/main?tab=Apache-2.0-1-ov-file#readme) 
+[![Code Style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
 KUKA Fast Robot Interface Python SDK.
 The code in this repository, provides Python bindings for the FRI Client SDK C++.
 The interface has been designed to be as similar as possible to the documentation provided by KUKA.
@@ -52,11 +55,18 @@ If you have a different version, please consider [forking](https://github.com/lb
 # Install
 
 1. Clone repository (make sure you include `--recursive`):
-   - (ssh) `$ git clone --recursive git@github.com:lbr-stack/pyFRI.git`
-   - (https) `$ git clone --recursive https://github.com/lbr-stack/pyFRI.git`
-2. Change directory: `$ cd pyFRI`
-3. Modify `fri_config.py`: uncomment the line corresponding to your version of FRI.
-4. Install: `$ pip install .`
+   ```shell
+   git clone --recursive https://github.com/lbr-stack/pyFRI.git
+   ```
+2. Change directory:
+   ```shell
+   cd pyFRI
+   ```
+3. Install:
+   ```shell
+   export FRI_CLIENT_VERSION=1.15
+   pip3 install .
+   ```
 
 ## Upgrading/switching between FRI Versions
 

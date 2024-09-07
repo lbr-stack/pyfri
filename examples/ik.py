@@ -3,7 +3,6 @@ from robot import load_robot
 
 
 class IK:
-
     """
 
     This class solves the following problem

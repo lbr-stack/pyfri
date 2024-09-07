@@ -1,0 +1,27 @@
+name: Build
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * *"
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        fri_version: [1.11, 1.14, 1.15, 1.16, 2.5, 2.7]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.10
+      - name: Export FRI_CLIENT_VERSION
+        run: export FRI_CLIENT_VERSION=${{ matrix.fri_version }}
+      - name: Test installation
+        run: pip3 install .

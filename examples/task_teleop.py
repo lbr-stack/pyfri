@@ -1,12 +1,12 @@
-import sys
 import argparse
+import sys
 from collections import OrderedDict
-
-# FRI Client: https://github.com/cmower/FRI-Client-SDK_Python
-import pyFRI as fri
 
 # PyGame: https://www.pygame.org/news
 import pygame
+
+# FRI Client: https://github.com/cmower/FRI-Client-SDK_Python
+import pyFRI as fri
 
 pygame.init()
 
@@ -157,7 +157,7 @@ def get_arguments():
 
 
 def main():
-    print("Running FRI Version:", fri.FRI_VERSION)
+    print("Running FRI Version:", fri.FRI_CLIENT_VERSION)
 
     args = get_arguments()
     ik = IK(args.lbr_ver)
