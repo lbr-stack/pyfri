@@ -53,8 +53,8 @@ See the [examples](examples/).
    pip3 install .
    ```
 
-   > [!NOTE]
-   > FRI client is fetched from [fri](https://github.com/lbr-stack/fri) and must be available as branch, refer [README](https://github.com/lbr-stack/fri?tab=readme-ov-file#contributing).
+> [!NOTE]
+> FRI client is fetched from [fri](https://github.com/lbr-stack/fri) and must be available as branch, refer [README](https://github.com/lbr-stack/fri?tab=readme-ov-file#contributing).
 
 # Important notice
 
