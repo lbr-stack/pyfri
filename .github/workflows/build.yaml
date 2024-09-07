@@ -21,7 +21,5 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.x"
-      - name: Export FRI_CLIENT_VERSION
-        run: export FRI_CLIENT_VERSION=${{ matrix.fri_version }}
       - name: Test installation
-        run: pip3 install .
+        run: export FRI_CLIENT_VERSION=${{ matrix.fri_version }} && pip3 install .
