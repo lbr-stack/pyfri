@@ -19,7 +19,45 @@ elif fri.FRI_CLIENT_VERSION_MAJOR == 2:
 
 
 class HandGuideClient(fri.LBRClient):
+    """
+    Initializes and manages a robotic arm's state, commanding its position based
+    on estimated joint states and external wrenches. It updates the robot's pose,
+    checks command mode, and filters wrench estimates to ensure smooth motion control.
+
+    Attributes:
+        controller (AdmittanceController|None): Initialized with an instance of
+            AdmittanceController in the constructor. It represents a controller
+            used for controlling the robot's joints based on estimated wrenches
+            and other factors.
+        joint_state_estimator (JointStateEstimator|None): Initialized with the
+            instance itself as its argument, indicating it's responsible for
+            estimating joint states based on current conditions.
+        external_torque_estimator (FRIExternalTorqueEstimator|None): Initialized
+            with its constructor being called on self, which suggests it estimates
+            external torques acting on the robot.
+        wrench_estimator (WrenchEstimatorTaskOffset|JointStateEstimator|FRIExternalTorqueEstimator):
+            Associated with a robot, ee link, and joint state estimator. It estimates
+            task-space forces and torques from joint sensor readings and external
+            torque estimations.
+        wrench_filter (ExponentialStateFilter): Used to filter wrench data from
+            the `WrenchEstimatorTaskOffset`. It appears to be a state estimation
+            method to provide more accurate results.
+
+    """
     def __init__(self, lbr_ver):
+        """
+        Initializes objects for admittance control, joint state estimation, external
+        torque estimation, wrench estimation, and exponential state filtering based
+        on provided parameters. It also establishes relationships between these
+        components for coordinated functioning.
+
+        Args:
+            lbr_ver (str | int): Used to specify the version or identifier of the
+                robot. This value is passed to the AdmittanceController class
+                during initialization. It appears to be related to the robotic
+                arm's model.
+
+        """
         super().__init__()
         self.controller = AdmittanceController(lbr_ver)
         self.joint_state_estimator = JointStateEstimator(self)
@@ -43,6 +81,12 @@ class HandGuideClient(fri.LBRClient):
         print(f"State changed from {old_state} to {new_state}")
 
     def waitForCommand(self):
+        """
+        Waits for a command from the client to be executed. It checks if the current
+        client mode matches POSITION, updates the wrench estimator, retrieves the
+        current joint position, and executes the command position.
+
+        """
         if self.robotState().getClientCommandMode() != POSITION:
             print(
                 f"[ERROR] hand guide example requires {POSITION.name} client command mode"
@@ -54,6 +98,12 @@ class HandGuideClient(fri.LBRClient):
         self.command_position()
 
     def command(self):
+        """
+        Updates robot position commands by filtering and processing wrench data
+        from the wrench estimator, then calls the `controller` function to compute
+        new joint positions. It also sets the joint position command of the robot.
+
+        """
         if not self.wrench_estimator.ready():
             self.wrench_estimator.update()
             self.robotCommand().setJointPosition(self.q.astype(np.float32))
@@ -74,6 +124,16 @@ class HandGuideClient(fri.LBRClient):
 
 
 def args_factory():
+    """
+    Creates an instance of the ArgumentParser class and defines arguments for
+    parsing command-line input. It returns a Namespace object containing user-specified
+    values for hostname, port, and LBR Med version number.
+
+    Returns:
+        argparseNamespace: An object containing arguments parsed from the command
+        line. This object holds attributes for `hostname`, `port`, and `lbr_ver`.
+
+    """
     parser = argparse.ArgumentParser(description="LRBJointSineOverlay example.")
     parser.add_argument(
         "--hostname",
@@ -101,6 +161,16 @@ def args_factory():
 
 
 def main():
+    """
+    Initializes a connection to a KUKA Sunrise controller,  attempts to establish
+    communication, and repeatedly polls the robot's state until idle or an error
+    occurs. It also handles keyboard interrupts and system exits before disconnecting
+    from the controller and terminating.
+
+    Returns:
+        int: 1 when connection to KUKA Sunrise controller fails, and 0 otherwise.
+
+    """
     print("Running FRI Version:", fri.FRI_CLIENT_VERSION)
 
     args = args_factory()
