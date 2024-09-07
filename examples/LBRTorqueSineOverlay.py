@@ -51,7 +51,7 @@ class LBRTorqueSineOverlayClient(fri.LBRClient):
             self.robotCommand().setTorque(self.torques)
 
 
-def get_arguments():
+def args_factory():
     def cvt_joint_mask(value):
         int_value = int(value)
         if 0 <= int_value < 7:
@@ -101,7 +101,7 @@ def get_arguments():
 def main():
     print("Running FRI Version:", fri.FRI_CLIENT_VERSION)
 
-    args = get_arguments()
+    args = args_factory()
     client = LBRTorqueSineOverlayClient(
         args.joint_mask, args.freq_hz, args.torque_amplitude
     )

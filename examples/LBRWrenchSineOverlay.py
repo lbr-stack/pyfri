@@ -57,7 +57,7 @@ class LBRWrenchSineOverlayClient(fri.LBRClient):
             self.robotCommand().setWrench(self.wrench)
 
 
-def get_arguments():
+def args_factory():
     parser = argparse.ArgumentParser(description="LRBJointSineOverlay example.")
     parser.add_argument(
         "--hostname",
@@ -107,7 +107,7 @@ def get_arguments():
 def main():
     print("Running FRI Version:", fri.FRI_CLIENT_VERSION)
 
-    args = get_arguments()
+    args = args_factory()
     print(args)
     client = LBRWrenchSineOverlayClient(
         args.frequencyX, args.frequencyY, args.amplitudeX, args.amplitudeY

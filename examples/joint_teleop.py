@@ -118,7 +118,7 @@ class TeleopClient(fri.LBRClient):
             self.robotCommand().setTorque(self.torques.astype(np.float32))
 
 
-def get_arguments():
+def args_factory():
     parser = argparse.ArgumentParser(description="LRBJointSineOverlay example.")
     parser.add_argument(
         "--hostname",
@@ -140,7 +140,7 @@ def get_arguments():
 def main():
     print("Running FRI Version:", fri.FRI_CLIENT_VERSION)
 
-    args = get_arguments()
+    args = args_factory()
     keyboard = Keyboard()
     client = TeleopClient(keyboard)
     app = fri.ClientApplication(client)

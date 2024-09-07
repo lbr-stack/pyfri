@@ -73,7 +73,7 @@ class HandGuideClient(fri.LBRClient):
         self.command_position()
 
 
-def get_arguments():
+def args_factory():
     parser = argparse.ArgumentParser(description="LRBJointSineOverlay example.")
     parser.add_argument(
         "--hostname",
@@ -103,7 +103,7 @@ def get_arguments():
 def main():
     print("Running FRI Version:", fri.FRI_CLIENT_VERSION)
 
-    args = get_arguments()
+    args = args_factory()
     client = HandGuideClient(args.lbr_ver)
     app = fri.ClientApplication(client)
     success = app.connect(args.port, args.hostname)
