@@ -9,6 +9,13 @@ from setuptools.command.build_ext import build_ext
 
 # Read the configuration settings
 class UserInputRequired(Exception):
+    """
+    Defines an exception that can be raised when user input is required to continue
+    a process. It inherits from Python's built-in `Exception` class and takes a
+    message as argument, which is then passed to the parent class's constructor
+    using `super().__init__(msg)`.
+
+    """
     def __init__(self, msg):
         super().__init__(msg)
 
@@ -43,13 +50,52 @@ PLAT_TO_CMAKE = {
 # The name must be the _single_ output extension from the CMake build.
 # If you need multiple extensions, see scikit-build.
 class CMakeExtension(Extension):
+    """
+    Initializes a CMake-based extension for Python packages. It sets an optional
+    sourcedirectory path and passes it to the parent `Extension` class, allowing
+    source files to be compiled by CMake during package installation.
+
+    Attributes:
+        sourcedir (Path|str): Set to a resolved filesystem path representing the
+            source directory, defaulting to an empty string. It is normalized by
+            using the `os.fspath()` function to ensure consistency in its representation.
+
+    """
     def __init__(self, name: str, sourcedir: str = "") -> None:
+        """
+        Initializes an object with a name and optionally a sourcedir path. The
+        name is passed to the superclass (Extension) along with an empty list of
+        sources, while the sourcedir is resolved and stored as a string.
+
+        Args:
+            name (str): Required for initialization. It represents the name that
+                will be used to identify this instance.
+            sourcedir (str): Optional by default. It represents the path to the
+                source directory, which is converted to an absolute path using `os.fspath(Path(sourcedir).resolve())`.
+
+        """
         super().__init__(name, sources=[])
         self.sourcedir = os.fspath(Path(sourcedir).resolve())
 
 
 class CMakeBuild(build_ext):
+    """
+    Extends the base `build_ext` class to handle CMake-based builds for Python
+    extensions. It generates and runs CMake commands to build the extension.
+
+    """
     def build_extension(self, ext: CMakeExtension) -> None:
+        """
+        Builds and compiles an extension using CMake, handling platform-specific
+        settings and generator options to create a build directory for the specified
+        extension.
+
+        Args:
+            ext (CMakeExtension): Used to represent an extension being built by
+                the function. The name attribute of `ext` is used to determine the
+                full path of the extension.
+
+        """
         # Must be in this form due to bug in .resolve() only fixed in Python 3.10+
         ext_fullpath = Path.cwd() / self.get_ext_fullpath(ext.name)
         extdir = ext_fullpath.parent.resolve()
