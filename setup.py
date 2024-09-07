@@ -1,40 +1,30 @@
 import os
 import re
-import sys
 import subprocess
+import sys
 from pathlib import Path
-from setuptools import Extension, setup, find_packages
+
+from setuptools import Extension, find_packages, setup
 from setuptools.command.build_ext import build_ext
 
 
 # Read the configuration settings
 class UserInputRequired(Exception):
     """
-    Defines an exception that can be raised when user input is required to continue
-    a process. It inherits from Python's built-in `Exception` class and takes a
-    message as argument, which is then passed to the parent class's constructor
-    using `super().__init__(msg)`.
+    Defines a custom exception for handling situations where user input is required
+    but not provided. It inherits from Python's built-in Exception class and adds
+    a customizable error message through its __init__ method, allowing for specific
+    feedback to the user.
 
     """
     def __init__(self, msg):
         super().__init__(msg)
 
 
-FRI_VERSION = None
-try:
-    from fri_config import FRI_VERSION
-except ImportError:
-    pass
-
-if FRI_VERSION is None:
-    STARTC = "\033[91m"
-    ENDC = "\033[0m"
+FRI_CLIENT_VERSION = os.environ.get("FRI_CLIENT_VERSION")
+if FRI_CLIENT_VERSION is None:
     raise UserInputRequired(
-        "\n\n"
-        + STARTC
-        + ">> FRI_VERSION not set in fri_config.py, refer to the Install section in README.md. <<"
-        + ENDC
-        + "\n"
+        "Please set the environment variable FRI_CLIENT_VERSION to the version of the FRI Client SDK you are using."
     )
 
 # Convert distutils Windows platform specifiers to CMake -A arguments
@@ -45,33 +35,33 @@ PLAT_TO_CMAKE = {
     "win-arm64": "ARM64",
 }
 
-
 # A CMakeExtension needs a sourcedir instead of a file list.
 # The name must be the _single_ output extension from the CMake build.
 # If you need multiple extensions, see scikit-build.
 class CMakeExtension(Extension):
     """
-    Initializes a CMake-based extension for Python packages. It sets an optional
-    sourcedirectory path and passes it to the parent `Extension` class, allowing
-    source files to be compiled by CMake during package installation.
+    Initializes a C extension package for a Python project. It takes a name and
+    optionally a sourcedirectory, sets up the extension with an empty list of
+    sources, and resolves the sourcedirectory path to its absolute form.
 
     Attributes:
-        sourcedir (Path|str): Set to a resolved filesystem path representing the
-            source directory, defaulting to an empty string. It is normalized by
-            using the `os.fspath()` function to ensure consistency in its representation.
+        sourcedir (Path|str): Set to a resolved absolute path when initialized.
+            It represents the source directory for the CMake extension. The value
+            defaults to an empty string if not provided during initialization.
 
     """
     def __init__(self, name: str, sourcedir: str = "") -> None:
         """
-        Initializes an object with a name and optionally a sourcedir path. The
-        name is passed to the superclass (Extension) along with an empty list of
-        sources, while the sourcedir is resolved and stored as a string.
+        Initializes an instance with a name and an optional sourcedir path, resolving
+        it to an absolute path using Path.resolve() before assigning it to
+        self.sourcedir. It also calls the parent class's constructor, passing the
+        name and an empty list for sources.
 
         Args:
-            name (str): Required for initialization. It represents the name that
-                will be used to identify this instance.
-            sourcedir (str): Optional by default. It represents the path to the
-                source directory, which is converted to an absolute path using `os.fspath(Path(sourcedir).resolve())`.
+            name (str): Required for initialization. It represents the name
+                associated with an instance, likely serving as an identifier or label.
+            sourcedir (str): Optional by default with an empty string as its value.
+                It represents a directory path from which sources are sourced.
 
         """
         super().__init__(name, sources=[])
@@ -80,20 +70,21 @@ class CMakeExtension(Extension):
 
 class CMakeBuild(build_ext):
     """
-    Extends the base `build_ext` class to handle CMake-based builds for Python
-    extensions. It generates and runs CMake commands to build the extension.
+    Extends the `build_ext` class from `setuptools` to provide a custom build
+    process for C++ extensions using CMake. It generates and builds extension
+    libraries based on environment variables, configuration options, and
+    platform-specific settings.
 
     """
     def build_extension(self, ext: CMakeExtension) -> None:
         """
-        Builds and compiles an extension using CMake, handling platform-specific
-        settings and generator options to create a build directory for the specified
-        extension.
+        Builds an extension using CMake, configuring it for the target platform
+        and architecture. It generates build files and compiles the extension.
 
         Args:
-            ext (CMakeExtension): Used to represent an extension being built by
-                the function. The name attribute of `ext` is used to determine the
-                full path of the extension.
+            ext (CMakeExtension): Used to build an extension for a Python package
+                using CMake. It is expected to be passed by this method, but not
+                further described within this snippet.
 
         """
         # Must be in this form due to bug in .resolve() only fixed in Python 3.10+
@@ -180,10 +171,10 @@ class CMakeBuild(build_ext):
                 build_args += [f"-j{self.parallel}"]
 
         # Set the FRI version number
-        fri_ver_major = FRI_VERSION.split(".")[0]
-        fri_ver_minor = FRI_VERSION.split(".")[1]
-        cmake_args += [f"-DFRI_VERSION_MAJOR={fri_ver_major}"]
-        cmake_args += [f"-DFRI_VERSION_MINOR={fri_ver_minor}"]
+        fri_ver_major = FRI_CLIENT_VERSION.split(".")[0]
+        fri_ver_minor = FRI_CLIENT_VERSION.split(".")[1]
+        cmake_args += [f"-DFRI_CLIENT_VERSION_MAJOR={fri_ver_major}"]
+        cmake_args += [f"-DFRI_CLIENT_VERSION_MINOR={fri_ver_minor}"]
 
         build_temp = Path(self.build_temp) / ext.name
         if not build_temp.exists():
@@ -200,8 +191,8 @@ class CMakeBuild(build_ext):
 setup(
     name="pyFRI",
     version="1.2.0",
-    author="Christopher E. Mower",
-    author_email="christopher.mower@kcl.ac.uk",
+    author="Christopher E. Mower, Martin Huber",
+    author_email="christopher.mower@kcl.ac.uk, m.huber_1994@hotmail.de",
     description="Python bindings for the FRI Client SDK library.",
     long_description="",
     packages=find_packages(),
