@@ -1,22 +1,20 @@
-import sys
-import math
 import argparse
-import pyFRI as fri
-from pyFRI.tools.state_estimators import (
-    JointStateEstimator,
-    FRIExternalTorqueEstimator,
-    WrenchEstimatorTaskOffset,
-)
-from pyFRI.tools.filters import ExponentialStateFilter
-
-
-from admittance import AdmittanceController
+import sys
 
 import numpy as np
+from admittance import AdmittanceController
 
-if fri.FRI_VERSION_MAJOR == 1:
+import pyFRI as fri
+from pyFRI.tools.filters import ExponentialStateFilter
+from pyFRI.tools.state_estimators import (
+    FRIExternalTorqueEstimator,
+    JointStateEstimator,
+    WrenchEstimatorTaskOffset,
+)
+
+if fri.FRI_CLIENT_VERSION_MAJOR == 1:
     POSITION = fri.EClientCommandMode.POSITION
-elif fri.FRI_VERSION_MAJOR == 2:
+elif fri.FRI_CLIENT_VERSION_MAJOR == 2:
     POSITION = fri.EClientCommandMode.JOINT_POSITION
 
 
@@ -103,7 +101,7 @@ def get_arguments():
 
 
 def main():
-    print("Running FRI Version:", fri.FRI_VERSION)
+    print("Running FRI Version:", fri.FRI_CLIENT_VERSION)
 
     args = get_arguments()
     client = HandGuideClient(args.lbr_ver)

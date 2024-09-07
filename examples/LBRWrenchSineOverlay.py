@@ -1,9 +1,10 @@
-import sys
-import math
 import argparse
-import pyFRI as fri
+import math
+import sys
 
 import numpy as np
+
+import pyFRI as fri
 
 
 class LBRWrenchSineOverlayClient(fri.LBRClient):
@@ -104,7 +105,7 @@ def get_arguments():
 
 
 def main():
-    print("Running FRI Version:", fri.FRI_VERSION)
+    print("Running FRI Version:", fri.FRI_CLIENT_VERSION)
 
     args = get_arguments()
     print(args)

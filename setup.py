@@ -1,9 +1,10 @@
 import os
 import re
-import sys
 import subprocess
+import sys
 from pathlib import Path
-from setuptools import Extension, setup, find_packages
+
+from setuptools import Extension, find_packages, setup
 from setuptools.command.build_ext import build_ext
 
 
@@ -13,21 +14,10 @@ class UserInputRequired(Exception):
         super().__init__(msg)
 
 
-FRI_VERSION = None
-try:
-    from fri_config import FRI_VERSION
-except ImportError:
-    pass
-
-if FRI_VERSION is None:
-    STARTC = "\033[91m"
-    ENDC = "\033[0m"
+FRI_CLIENT_VERSION = os.environ.get("FRI_CLIENT_VERSION")
+if FRI_CLIENT_VERSION is None:
     raise UserInputRequired(
-        "\n\n"
-        + STARTC
-        + ">> FRI_VERSION not set in fri_config.py, refer to the Install section in README.md. <<"
-        + ENDC
-        + "\n"
+        "Please set the environment variable FRI_CLIENT_VERSION to the version of the FRI Client SDK you are using."
     )
 
 # Convert distutils Windows platform specifiers to CMake -A arguments
@@ -134,7 +124,10 @@ class CMakeBuild(build_ext):
                 build_args += [f"-j{self.parallel}"]
 
         # Set the FRI version number
-        cmake_args += [f"-DFRI_VERSION={FRI_VERSION}"]
+        fri_ver_major = FRI_CLIENT_VERSION.split(".")[0]
+        fri_ver_minor = FRI_CLIENT_VERSION.split(".")[1]
+        cmake_args += [f"-DFRI_CLIENT_VERSION_MAJOR={fri_ver_major}"]
+        cmake_args += [f"-DFRI_CLIENT_VERSION_MINOR={fri_ver_minor}"]
 
         build_temp = Path(self.build_temp) / ext.name
         if not build_temp.exists():
@@ -151,8 +144,8 @@ class CMakeBuild(build_ext):
 setup(
     name="pyFRI",
     version="1.2.0",
-    author="Christopher E. Mower",
-    author_email="christopher.mower@kcl.ac.uk",
+    author="Christopher E. Mower, Martin Huber",
+    author_email="christopher.mower@kcl.ac.uk, m.huber_1994@hotmail.de",
     description="Python bindings for the FRI Client SDK library.",
     long_description="",
     packages=find_packages(),

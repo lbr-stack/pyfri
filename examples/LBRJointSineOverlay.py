@@ -1,9 +1,11 @@
-import sys
-import math
 import argparse
+import math
+import sys
+
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
+
 import pyFRI as fri
 
 
@@ -110,7 +112,7 @@ def get_arguments():
 
 
 def main():
-    print("Running FRI Version:", fri.FRI_VERSION)
+    print("Running FRI Version:", fri.FRI_CLIENT_VERSION)
 
     args = get_arguments()
     client = LBRJointSineOverlayClient(

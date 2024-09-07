@@ -1,7 +1,6 @@
+import numpy as np
 import optas
 from robot import load_robot
-
-import numpy as np
 
 
 class AdmittanceController:
