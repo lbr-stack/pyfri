@@ -13,7 +13,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, ubuntu-22.04]
         fri_version: [1.11, 1.14, 1.15, 1.16, 2.5, 2.7]
     steps:
       - uses: actions/checkout@v4
