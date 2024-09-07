@@ -115,3 +115,17 @@ Then turn on the robot, connect your laptop via ethernet, and follow these steps
 # Documentation
 
 You can find documentation for `pyFRI` in the [wiki](https://github.com/cmower/FRI-Client-SDK_Python/wiki).
+
+# Citation
+If you enjoyed using this repository for your work, we would really appreciate ❤️ if you could cite it, as it helps us to continue offering support.
+
+```
+@misc{huber2023lbrstack,
+      title={LBR-Stack: ROS 2 and Python Integration of KUKA FRI for Med and IIWA Robots}, 
+      author={Martin Huber and Christopher E. Mower and Sebastien Ourselin and Tom Vercauteren and Christos Bergeles},
+      year={2023},
+      eprint={2311.12709},
+      archivePrefix={arXiv},
+      primaryClass={cs.RO}
+}
+```
