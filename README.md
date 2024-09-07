@@ -1,7 +1,7 @@
-# pyFRI
+# pyfri
 
-[![Build](https://github.com/lbr-stack/pyFRI/actions/workflows/build.yaml/badge.svg)](https://github.com/lbr-stack/pyFRI/actions/workflows/build.yaml)
-[![License](https://img.shields.io/github/license/lbr-stack/pyFRI)](https://github.com/lbr-stack/pyFRI/tree/main?tab=Apache-2.0-1-ov-file#readme)
+[![Build](https://github.com/lbr-stack/pyfri/actions/workflows/build.yaml/badge.svg)](https://github.com/lbr-stack/pyfri/actions/workflows/build.yaml)
+[![License](https://img.shields.io/github/license/lbr-stack/pyfri)](https://github.com/lbr-stack/pyfri/tree/main?tab=Apache-2.0-1-ov-file#readme)
 [![JOSS](https://joss.theoj.org/papers/c43c82bed833c02503dd47f2637192ef/status.svg)](https://joss.theoj.org/papers/c43c82bed833c02503dd47f2637192ef)
 [![Code Style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
@@ -26,7 +26,7 @@ ClientApplication app(connection, client);
 In Python, the equivalent code is as follows.
 
 ```python
-import pyFRI as fri
+import pyfri as fri
 
 # ..setup client..
 
@@ -41,11 +41,11 @@ See the [examples](examples/).
 
 1. Clone repository (make sure you include `--recursive`):
    ```shell
-   git clone --recursive https://github.com/lbr-stack/pyFRI.git
+   git clone --recursive https://github.com/lbr-stack/pyfri.git
    ```
 2. Change directory:
    ```shell
-   cd pyFRI
+   cd pyfri
    ```
 3. Install:
    ```shell

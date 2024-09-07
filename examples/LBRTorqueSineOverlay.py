@@ -4,7 +4,7 @@ import sys
 
 import numpy as np
 
-import pyFRI as fri
+import pyfri as fri
 
 
 class LBRTorqueSineOverlayClient(fri.LBRClient):

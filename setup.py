@@ -142,14 +142,14 @@ class CMakeBuild(build_ext):
 
 
 setup(
-    name="pyFRI",
+    name="pyfri",
     version="1.2.0",
     author="Christopher E. Mower, Martin Huber",
     author_email="christopher.mower@kcl.ac.uk, m.huber_1994@hotmail.de",
     description="Python bindings for the FRI Client SDK library.",
     long_description="",
     packages=find_packages(),
-    ext_modules=[CMakeExtension("_pyFRI")],
+    ext_modules=[CMakeExtension("_pyfri")],
     install_requires=["numpy", "pygame", "pyoptas", "pandas", "matplotlib"],
     cmdclass={"build_ext": CMakeBuild},
     python_requires=">=3.8",

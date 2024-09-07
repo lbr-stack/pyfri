@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-import pyFRI as fri
+import pyfri as fri
 
 
 class LBRJointSineOverlayClient(fri.LBRClient):

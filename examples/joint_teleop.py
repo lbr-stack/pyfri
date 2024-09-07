@@ -4,7 +4,7 @@ import sys
 import pygame
 
 # FRI Client: https://github.com/cmower/FRI-Client-SDK_Python
-import pyFRI as fri
+import pyfri as fri
 
 pygame.init()
 

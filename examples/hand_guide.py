@@ -4,9 +4,9 @@ import sys
 import numpy as np
 from admittance import AdmittanceController
 
-import pyFRI as fri
-from pyFRI.tools.filters import ExponentialStateFilter
-from pyFRI.tools.state_estimators import (
+import pyfri as fri
+from pyfri.tools.filters import ExponentialStateFilter
+from pyfri.tools.state_estimators import (
     FRIExternalTorqueEstimator,
     JointStateEstimator,
     WrenchEstimatorTaskOffset,
