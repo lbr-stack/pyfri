@@ -3,6 +3,7 @@ import sys
 
 # FRI Client: https://github.com/cmower/FRI-Client-SDK_Python
 import pyfri as fri
+
 # PyGame: https://www.pygame.org/news
 import pygame
 
@@ -14,33 +15,35 @@ import numpy as np
 
 class Keyboard:
     """
-    Handles keyboard input to control a joint's direction and velocity. It tracks
-    which joint is currently active, updates its velocity based on key presses,
-    and returns the current joint index and its updated velocity for further processing.
+    Sets up a pygame display and manages user input to control joint movement. It
+    allows users to turn joints on/off using number keys (1-7) and adjust their
+    rotation speed using arrow keys or designated keybindings.
 
     Attributes:
-        max_joint_velocity (float): 5 degrees converted to radians using NumPy's
-            `deg2rad` function, limiting the maximum speed at which a joint can
-            be rotated.
-        joint_index (NoneType|int): Used to track which joint (out of a maximum
-            of six) is currently active for movement. It's initialized as None and
-            updated when a specific key is pressed or released.
-        joint_velocity (float): 0 by default. It represents the velocity of a
-            joint, updated based on user input from the keyboard with directions
-            mapped to specific keys. The maximum allowed value is determined by `max_joint_velocity`.
-        key_to_dir_map (Dict[int,float]): Initialized with two key-value pairs.
-            It maps Pygame keys to numerical values, specifically left arrow (1.0)
-            and right arrow (-1.0), used for joint rotation control.
-        key_joint_map (List[pygameK_]): Defined with values from 1 to 7 on keys
-            K_1, K_2, ..., K_7, used as a mapping between keyboard keys and joint
-            indices.
+        max_joint_velocity (float): Set to a value that corresponds to a
+            degree-to-radian conversion of 5 degrees, indicating the maximum allowed
+            angular velocity for the joint.
+        joint_index (Optional[int]|None): Used to store the index of a specific
+            joint selected by the user, initially set to None but assigned when a
+            joint key is pressed.
+        joint_velocity (float): 0 by default. It tracks the current velocity of a
+            joint, which can be increased or decreased based on user input from
+            the arrow keys. Its value is capped at `max_joint_velocity`.
+        key_to_dir_map (Dict[int,float]): Initialized with a dictionary mapping
+            Pygame keyboard keys (integers) to their corresponding direction values
+            as floats. The keys are for movement control, while the values determine
+            the direction.
+        key_joint_map (List[int]): Mapped to keys on the keyboard corresponding
+            to joints. It contains numeric key values from K_1 to K_7 that are
+            used to turn joint actions on or off by pressing the associated key.
 
     """
     def __init__(self):
         """
-        Initializes Pygame display, sets up joint movement parameters, and defines
-        mappings for keyboard input to control joystick direction and selection
-        of joints. It configures internal state variables with default values.
+        Initializes various attributes related to keyboard input and joint control.
+        It sets up a Pygame display, defines maximum joint velocity, key-to-direction
+        mapping, and key-joint mappings for controlling multiple joints with
+        specific keys.
 
         """
         pygame.display.set_mode((300, 300))
@@ -67,15 +70,14 @@ class Keyboard:
 
     def __call__(self):
         """
-        Processes Pygame events to control the movement of a joint in real-time
-        simulation. It handles QUIT, KEYDOWN, and KEYUP events to toggle joint
-        activation, change direction, and update joint velocity based on user input.
+        Handles keyboard events to control a joint's state and velocity, allowing
+        the user to turn it on/off and adjust its direction using specific key combinations.
 
         Returns:
-            tuple[int,float]: 2-element list containing an integer and a float.
-            The integer represents the currently selected joint index, or None if
-            no joint is selected. The float represents the joint's velocity scaled
-            by its maximum allowed value.
+            Tuple[int,float]: A tuple containing two values: an integer and a float.
+            The first value is either None or a joint index (an integer).
+            The second value is the product of max_joint_velocity (a float) and
+            joint_velocity (another float).
 
         """
         for event in pygame.event.get():
@@ -116,29 +118,31 @@ class Keyboard:
 
 class TeleopClient(fri.LBRClient):
     """
-    Initializes a client for teleoperation of a robot, interacting with keyboard
-    input to command joint positions and torques, handling state changes, and
-    updating commands based on keyboard input and current robot state.
+    Initializes a teleoperation client with keyboard input, monitors robot states,
+    and enables users to control robotic joints using left/right arrow keys or
+    specific joint numbers on the keyboard. It sends joint position commands to
+    the robot based on user input.
 
     Attributes:
-        keyboard (object): Used to retrieve joint index and velocity goal from
-            user input, presumably through a graphical interface or a library like
-            PyGame.
-        torques (numpyndarray[float32]): Initialized as a zeros array with a length
-            of fri.LBRState.NUMBER_OF_JOINTS, which represents the number of joints
-            in the robot. It stores torques values for each joint.
+        keyboard (object): Initialized in the `__init__` method. It does not have
+            any direct description within the code snippet provided, but its usage
+            suggests it is related to capturing keyboard input for controlling
+            robot joints.
+        torques (npndarray[float32]): Initialized with zeros. It stores torque
+            values for each joint, representing a set of torques that can be applied
+            to control robot movements when operating in torque mode.
 
     """
     def __init__(self, keyboard):
         """
-        Initializes an object by setting its keyboard attribute to the passed
-        keyboard argument and creating a vector of zeros representing joint torques
-        with the specified number of joints from the LBRState class.
+        Initializes an instance with a keyboard object and sets its attributes,
+        including the torques of its joints to zeros. The NUMBER_OF_JOINTS constant
+        is used from fri.LBRState to determine the size of the torques array.
 
         Args:
-            keyboard (object): Set as an attribute of the class instance, referring
-                to an external keyboard device or its interface that interacts
-                with the robotic system.
+            keyboard (fri.Keyboard): Assumed to be an instance of the Keyboard
+                class from the fri package. Its actual behavior depends on its
+                implementation in that package.
 
         """
         super().__init__()
@@ -150,16 +154,17 @@ class TeleopClient(fri.LBRClient):
 
     def onStateChange(self, old_state, new_state):
         """
-        Updates the state of the robot and initializes data structures for control
-        when the robot transitions into monitoring-ready state.
+        Prints state change notifications and sets up a control interface when the
+        robot reaches the MONITORING_READY state, prompting the user to control
+        robot joints using keyboard input.
 
         Args:
-            old_state (fri.ESessionState | None): An indication of the robot
-                session's previous state before the change occurred. It represents
-                the old state of the system.
-            new_state (fri.ESessionState): Checked to determine whether it equals
-                MONITORING_READY. This state indicates that the robot is ready for
-                control.
+            old_state (Union[fri.ESessionState, fri.LBRState]): Used to represent
+                the state of the robot before it changed to the new_state. It
+                indicates the previous operational mode or configuration of the robot.
+            new_state (fri.ESessionState): Checked for equality with
+                fri.ESessionState.MONITORING_READY. It represents the new state
+                of the robot session after a change has occurred.
 
         """
         print(f"State changed from {old_state} to {new_state}")
@@ -180,9 +185,9 @@ class TeleopClient(fri.LBRClient):
 
     def waitForCommand(self):
         """
-        Updates the robot's joint positions and torques based on received commands
-        from a client, ensuring consistency between joint positions and torque
-        values when the client is in TORQUE mode.
+        Waits for a new command from the robot and applies it by setting the joint
+        positions and torques accordingly based on the client's current mode,
+        allowing torque control when enabled.
 
         """
         self.q = self.robotState().getIpoJointPosition()
@@ -193,9 +198,9 @@ class TeleopClient(fri.LBRClient):
 
     def command(self):
         """
-        Executes user input to control the robot's joints and apply torques based
-        on current state and desired goals, updating the robot's joint positions
-        and torque commands accordingly.
+        Updates the robot's joint positions and torques based on user input from
+        a keyboard, and sends the updated values to the robot for execution. It
+        handles different client command modes, including torque control.
 
         """
         joint_index, vgoal = self.keyboard()
@@ -211,13 +216,14 @@ class TeleopClient(fri.LBRClient):
 
 def args_factory():
     """
-    Constructs an argument parser using the `argparse` library and returns the
-    parsed command line arguments. It defines two arguments: `hostname` with a
-    default value of `None`, and `port` as an integer with a default value of `30200`.
+    Parses command line arguments using argparse. It defines two arguments,
+    `hostname` and `port`, to connect with a KUKA Sunrise Controller. The default
+    port is set to 30200. Parsed arguments are returned as an object, allowing
+    access to their values.
 
     Returns:
-        argparseNamespace: An object that holds all the arguments passed through
-        the command-line interface, parsed by the ArgumentParser instance.
+        argparseNamespace: An object holding the parsed arguments from the command
+        line, including hostname and port.
 
     """
     parser = argparse.ArgumentParser(description="LRBJointSineOverlay example.")
@@ -240,15 +246,14 @@ def args_factory():
 
 def main():
     """
-    Establishes a connection to a KUKA Sunrise controller, allowing for teleoperation
-    and control of the robot through keyboard input. It runs indefinitely until
-    interrupted by user input or system exit, then disconnects and prints a farewell
-    message before returning successfully.
+    Initializes and connects to a KUKA Sunrise controller using the FRI (Fieldbus
+    Remote Interface) protocol, then enters an infinite loop where it continuously
+    checks for new commands until the session state changes or an interrupt is received.
 
     Returns:
-        int: 1 if the connection to KUKA Sunrise controller fails and 0 otherwise,
-        indicating successful execution or an intentional exit due to a keyboard
-        interrupt.
+        int: 0 when a connection to KUKA Sunrise controller is established, and 1
+        otherwise, indicating failure. This allows the operating system or script
+        that calls this function to determine whether it was successful.
 
     """
     print("Running FRI Version:", fri.FRI_CLIENT_VERSION)
