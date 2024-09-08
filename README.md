@@ -6,7 +6,7 @@
 [![Code Style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 KUKA Fast Robot Interface Python SDK.
-The code in this repository, provides Python bindings for the FRI Client SDK C++.
+The code in this repository, provides Python bindings for the FRI Client SDK C++ through [pybind11](https://github.com/pybind/pybind11).
 The interface has been designed to be as similar as possible to the documentation provided by KUKA.
 
 There is one difference users of the Python bindings should be aware.
