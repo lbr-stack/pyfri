@@ -4,9 +4,9 @@ import sys
 import numpy as np
 from admittance import AdmittanceController
 
-import pyFRI as fri
-from pyFRI.tools.filters import ExponentialStateFilter
-from pyFRI.tools.state_estimators import (
+import pyfri as fri
+from pyfri.tools.filters import ExponentialStateFilter
+from pyfri.tools.state_estimators import (
     FRIExternalTorqueEstimator,
     JointStateEstimator,
     WrenchEstimatorTaskOffset,
@@ -20,40 +20,39 @@ elif fri.FRI_CLIENT_VERSION_MAJOR == 2:
 
 class HandGuideClient(fri.LBRClient):
     """
-    Initializes a hand guide client for an FRI (Force-Controlled Robot Interface)
-    compliant robot arm. It estimates joint states and wrenches, applies filters
-    to stabilize control inputs, and issues position commands to the robot based
-    on estimated values and controller feedback.
+    Simulates an admittance controller for a robot arm's end-effector, estimating
+    and filtering wrenches to adjust joint positions in real-time based on external
+    forces applied to the arm. It ensures a specific client command mode is used.
 
     Attributes:
-        controller (AdmittanceController|None): Initialized with lbr_ver in the
-            __init__ method, representing a controller object for admittance control
-            of a robot manipulator.
-        joint_state_estimator (JointStateEstimator): Initialized with `self` as
-            its argument, suggesting that it is used to estimate the joint states
-            of the robot based on data from the client itself.
-        external_torque_estimator (FRIExternalTorqueEstimator|None): Created by
-            calling the constructor FRIExternalTorqueEstimator with a reference
-            to the current object as its argument.
-        wrench_estimator (WrenchEstimatorTaskOffset|None): An instance of
-            WrenchEstimatorTaskOffset class. It estimates the wrench applied to
-            the end-effector of the robot.
-        wrench_filter (ExponentialStateFilter): Not used directly within the methods
-            in this snippet, but its filter method is called to modify a wrench
-            measurement before passing it through the controller.
+        controller (AdmittanceController): Initialized with a parameter lbr_ver
+            in the `__init__` method. It represents an admittance control strategy
+            used to update joint positions based on estimated wrenches and robot
+            state.
+        joint_state_estimator (JointStateEstimator|None): Initialized with a
+            JointStateEstimator instance that takes self as its argument, suggesting
+            it estimates the state of the robot's joints.
+        external_torque_estimator (FRIExternalTorqueEstimator|None): Initialized
+            with the HandGuideClient instance as its self reference in the `__init__`
+            method. It estimates external torques on the robot arm.
+        wrench_estimator (WrenchEstimatorTaskOffset|None): Initialized with a set
+            of four arguments: the `self`, its `joint_state_estimator`,
+            `external_torque_estimator`, `controller.robot`, and `controller.ee_link`.
+        wrench_filter (ExponentialStateFilter|None): Initialized as such:
+            `self.wrench_filter = ExponentialStateFilter()`. It appears to be a
+            filter for exponential smoothing of wrenches.
 
     """
     def __init__(self, lbr_ver):
         """
-        Initializes various components for admittance control, including estimators
-        and filters, setting up relationships between them based on their dependencies.
-        It sets up a complete structure for controlling an LBR robot arm using
-        admittance control methods.
+        Initializes various components including an admittance controller, joint
+        state estimator, external torque estimator, wrench estimator, and exponential
+        state filter for a Franka robot arm with specified LBR version.
 
         Args:
-            lbr_ver (str | int): Used to specify the version or variant of the
-                KUKA LBR robot arm model being controlled by the AdmittanceController
-                class.
+            lbr_ver (str | int): An identifier that specifies the type or version
+                of the LBR (Lightweight Robot) being used. It is passed to various
+                classes for specific initialization, configuration, or control purposes.
 
         """
         super().__init__()
@@ -80,9 +79,10 @@ class HandGuideClient(fri.LBRClient):
 
     def waitForCommand(self):
         """
-        Waits for a specific client command mode to be enabled, updates the wrench
-        estimator, retrieves the current joint position and stores it as self.q,
-        then calls the command_position method to send a command based on self.q.
+        Ensures that the client command mode is set to POSITION before proceeding
+        with further operations. If not, it raises an exit system. Otherwise, it
+        retrieves the current Ipo joint position and calls the `command_position`
+        method.
 
         """
         if self.robotState().getClientCommandMode() != POSITION:
@@ -91,16 +91,14 @@ class HandGuideClient(fri.LBRClient):
             )
             raise SystemExit
 
-        self.wrench_estimator.update()
         self.q = self.robotState().getIpoJointPosition()
         self.command_position()
 
     def command(self):
         """
-        Updates the robot's joint position based on filtered wrench data from an
-        estimator, controller and filter. It only proceeds with this calculation
-        if the estimator is ready. Otherwise, it updates the estimator and resets
-        the joint position.
+        Generates and sends joint position commands to the robot based on filtered
+        wrench data from the environment, using a control strategy defined by the
+        controller function.
 
         """
         if not self.wrench_estimator.ready():
@@ -122,16 +120,15 @@ class HandGuideClient(fri.LBRClient):
         self.command_position()
 
 
-def get_arguments():
+def args_factory():
     """
-    Initializes an argument parser and defines command-line arguments for a script,
-    including hostname, port, and KUKA LBR Med version number, returning parsed
-    arguments as an object.
+    Parses command-line arguments using `argparse`. It defines three required
+    arguments: hostname, port, and lbr-ver, with specific data types and validation
+    rules for each. The parsed arguments are then returned as a namespace object.
 
     Returns:
-        argparseNamespace: An object containing parsed arguments from the command
-        line, specifically hostname, port, and lbr-ver (KUKA LBR Med version number)
-        along with their corresponding values.
+        argparseNamespace: An object containing all the command-line arguments
+        parsed by the ArgumentParser instance.
 
     """
     parser = argparse.ArgumentParser(description="LRBJointSineOverlay example.")
@@ -162,19 +159,19 @@ def get_arguments():
 
 def main():
     """
-    Initializes and runs a client application for interacting with a KUKA Sunrise
-    controller, executing steps until the robot reaches an idle state or interrupted
-    by user input. It handles connections, disconnections, and exceptions.
+    Establishes a connection to a KUKA Sunrise controller, runs an application
+    loop, and ensures proper cleanup upon exit or termination. It also displays
+    version information and error messages as necessary. The connection is maintained
+    until the controller enters an idle state.
 
     Returns:
-        int: 0 on successful execution and 1 if connection to KUKA Sunrise controller
-        fails, indicating an unsuccessful run. The returned value is used as a
-        return code for the program.
+        int: 0 on successful execution and 1 on failure to connect to KUKA Sunrise
+        controller.
 
     """
     print("Running FRI Version:", fri.FRI_CLIENT_VERSION)
 
-    args = get_arguments()
+    args = args_factory()
     client = HandGuideClient(args.lbr_ver)
     app = fri.ClientApplication(client)
     success = app.connect(args.port, args.hostname)

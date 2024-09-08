@@ -6,54 +6,54 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-import pyFRI as fri
+import pyfri as fri
 
 
 class LBRJointSineOverlayClient(fri.LBRClient):
     """
-    Simulates a sine wave overlay on specific joints of a robot, with adjustable
-    frequency, amplitude, and filtering. It monitors state changes to update its
-    parameters and applies the simulated movement when ready. It also waits for
-    commands and adjusts joint positions accordingly.
+    Generates a sinusoidal joint position offset for specific joints on an industrial
+    robot, controlled by a sine wave with adjustable frequency and amplitude,
+    filtering the output to smooth out oscillations.
 
     Attributes:
-        joint_mask (numpyndarray|int): Used to select a subset of joints for which
-            sine overlay is applied, ignoring others.
-        freq_hz (float): Initialized by the user when creating an instance of the
-            class. It represents a frequency value in Hertz that determines the
-            oscillation period of a sine wave overlay for joint positions.
-        ampl_rad (float): Used to scale the sine wave offset values in radians.
-            It controls the amplitude of the sinusoidal motion added to the joint
-            positions.
-        filter_coeff (float): Used as a coefficient for a simple exponential
-            smoothing filter to smooth out the oscillation amplitude.
-        offset (float): Initialized to 0. It represents a filtered sine wave offset
-            value used to update joint positions during the command method.
-        phi (float): Used as a phase angle in a mathematical function, specifically
-            the sine function. It increments by `self.step_width` each time the
-            command method is called.
-        step_width (float): 0 by default. It calculates the angular step for sine
-            wave overlay based on frequency, sample time, and is updated in `onStateChange`.
+        joint_mask (numpyndarray|int): Used to specify which joints of a robot are
+            affected by the sine wave overlay.
+        freq_hz (float): Intended to represent the frequency of a sine wave,
+            measured in Hertz (Hz). It appears to be used for generating a sinusoidal
+            offset.
+        ampl_rad (float): A parameter controlling the amplitude (in radians) of
+            the sine wave used to modulate joint positions. It determines the
+            maximum deviation from the base joint position.
+        filter_coeff (float): 0 by default, used for low-pass filtering the offset
+            value of the sine wave, effectively reducing its amplitude over time.
+        offset (float): Initialized to 0.0. It represents a value used to modify
+            joint positions based on a sine wave pattern, filtered over time with
+            a specified coefficient.
+        phi (float): Initialized to zero. It increments by a calculated step width
+            during each command execution, simulating rotation at the specified frequency.
+        step_width (float): Set in the `onStateChange` method to twice pi times
+            the frequency (in Hz) times the sample time, essentially defining a
+            phase increment for each sampling step.
 
     """
     def __init__(self, joint_mask, freq_hz, ampl_rad, filter_coeff):
         """
-        Initializes an object with specified parameters, including joint mask,
-        frequency, amplitude, and filter coefficient, as well as additional
-        attributes for offset, phase, and step width.
+        Initializes its attributes, including joint mask, frequency, amplitude,
+        filter coefficient, offset, phase angle, and step width from input parameters.
+        It calls the parent class's `__init__` method using `super().__init__()`.
 
         Args:
-            joint_mask (bool | np.ndarray): 2-dimensional. It represents joint
-                (common) mask, likely used to specify which elements are valid for
-                further calculations or filtering processes.
-            freq_hz (float): Expected to be set to a value representing frequency
-                in hertz. It initializes an instance variable `freq_hz` of the class.
-            ampl_rad (float): 0.0 by default. It appears to represent an amplitude
-                value in radians, suggesting it could be related to oscillatory
-                behavior or wave properties.
-            filter_coeff (float | int): Assigned from an unknown source. Its purpose
-                is unclear without more context, but its name suggests it could
-                be related to filter coefficients used in signal processing.
+            joint_mask (np.ndarray | List[int]): 2D with shape (n_joints, n_joints),
+                representing the adjacency matrix for joints used to connect and
+                filter movement data.
+            freq_hz (float): Required for initialization, specifying the frequency
+                in Hertz.
+            ampl_rad (float): 3rd argument passed to this method, it represents
+                the amplitude of an oscillation in radians. It seems to be related
+                to angular measurements in a sinusoidal signal.
+            filter_coeff (float): Set by the user when creating an instance of
+                this class. It likely represents a coefficient used for filtering
+                data, possibly as part of a low-pass or high-pass filter calculation.
 
         """
         super().__init__()
@@ -70,15 +70,17 @@ class LBRJointSineOverlayClient(fri.LBRClient):
 
     def onStateChange(self, old_state, new_state):
         """
-        Resets certain parameters when the robot transitions to the 'MONITORING_READY'
-        state, and prints a message indicating the change in state.
+        Updates its internal state when the robot's session state changes to
+        MONITORING_READY, resetting certain parameters such as offset, phi, and
+        step width based on the robot's frequency and sample time.
 
         Args:
-            old_state (str | Enum): Described by the documentation as "the previous
-                state". It represents the state of the object before it was changed.
-            new_state (Enum[fri.ESessionState]): Passed to the function when the
-                state of an object changes. The specific value depends on the
-                context in which the function is called.
+            old_state (fri.ESessionState): Used to store the previous state of an
+                object or system before its current state changes. Its value is
+                passed as an argument from another function call.
+            new_state (Enum[fri.ESessionState]): Updated to MONITORING_READY on
+                state change, which triggers resetting several attributes of the
+                class instance.
 
         """
         print(f"Changed state from {old_state} to {new_state}")
@@ -91,9 +93,9 @@ class LBRJointSineOverlayClient(fri.LBRClient):
 
     def waitForCommand(self):
         """
-        Sets the joint position of the robot based on the current Ipo joint position,
-        converting it to a float32 format before applying it. It appears to be
-        waiting for a command from an external source or system.
+        Updates the robot's joint positions using values retrieved from an IPO
+        (In-Place Optimization) calculation, converting them to float32 data type
+        before applying them.
 
         """
         self.robotCommand().setJointPosition(
@@ -102,9 +104,9 @@ class LBRJointSineOverlayClient(fri.LBRClient):
 
     def command(self):
         """
-        Updates the offset for joint movements, calculates the new position based
-        on the updated offset and applies it to the robot's joints. It uses a
-        low-pass filter to smoothly transition between new and previous offsets.
+        Updates the offset value based on filtered sine wave input, adjusts the
+        phase angle to ensure it remains within a specific range, and sends the
+        updated joint position command to the robot.
 
         """
         new_offset = self.ampl_rad * math.sin(self.phi)
@@ -119,34 +121,31 @@ class LBRJointSineOverlayClient(fri.LBRClient):
         self.robotCommand().setJointPosition(joint_pos.astype(np.float32))
 
 
-def get_arguments():
+def args_factory():
     """
-    Parses command-line arguments for a program that communicates with a KUKA
-    Sunrise Controller, including hostname, port number, joint mask, frequency,
-    amplitude, filter coefficient, and data saving flag. It uses type conversion
-    and error checking to validate input values.
+    Creates an argument parser for a program that interacts with a KUKA Sunrise
+    Controller, accepting various parameters such as hostname, port number, joint
+    mask, frequency and amplitude of a sine wave, filter coefficient, and data
+    saving flag.
 
     Returns:
-        argparseNamespace: An object containing all the command line arguments
-        parsed by ArgumentParser. This object has attributes for each argument
-        added to the parser.
+        argparseNamespace: An object that stores the parsed command line arguments
+        as attributes. It encapsulates all argument values provided to the script.
 
     """
     def cvt_joint_mask(value):
         """
-        Converts a given value into an integer that represents a joint mask and
-        checks if it falls within the specified valid range (0 to 6). If not, it
-        raises an error with a descriptive message indicating the invalid value
-        and the acceptable range.
+        Converts a given input value to an integer and checks if it falls within
+        the specified range (0-6 inclusive). If valid, it returns the integer;
+        otherwise, it raises an error with a descriptive message.
 
         Args:
-            value (Union[int, str]): Expected to be either an integer within the
-                specified range or a string that can be converted to an integer
-                within this range.
+            value (Union[int, str]): Expected to be within the range of integer
+                values from 0 to 7 exclusive.
 
         Returns:
-            int|None: A integer value representing joint mask index from 0 to 6
-            if valid input is provided otherwise it raises an ArgumentTypeError exception.
+            int|None: Integer value within the range [0, 7) or raises an error if
+            not within this specified range.
 
         """
         int_value = int(value)
@@ -210,19 +209,19 @@ def get_arguments():
 
 def main():
     """
-    Initializes a KUKA Sunrise controller connection, runs an LBRJointSineOverlay
-    client application, collects data when specified, and plots it as a 4x1 subplot
-    after disconnection, displaying measured and IPO positions along with torque
-    values over time.
+    Initializes a KUKA Sunrise controller client, collects data and performs a
+    joint sine overlay test. It handles connections, disconnections, and data
+    saving, then displays a plot of collected data using matplotlib.
 
     Returns:
-        int|None: 0 on successful completion and non-zero if connection to KUKA
-        Sunrise controller fails.
+        int|None: 0 when no exceptions occur and when the application runs
+        successfully, otherwise it returns a non-zero value, specifically 1 if the
+        connection to KUKA Sunrise controller fails.
 
     """
     print("Running FRI Version:", fri.FRI_CLIENT_VERSION)
 
-    args = get_arguments()
+    args = args_factory()
     client = LBRJointSineOverlayClient(
         args.joint_mask, args.freq_hz, args.ampl_rad, args.filter_coeff
     )

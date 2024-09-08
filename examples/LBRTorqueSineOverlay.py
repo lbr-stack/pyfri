@@ -4,52 +4,51 @@ import sys
 
 import numpy as np
 
-import pyFRI as fri
+import pyfri as fri
 
 
 class LBRTorqueSineOverlayClient(fri.LBRClient):
     """
-    Implements a client for Lab Robot (LBR) torque control with a sine wave overlay
-    on specified joints. It monitors state changes, waits for commands, and sends
-    joint position and torque commands to the robot based on user-defined frequency
-    and amplitude parameters.
+    Implements a client for an LBR robot, specifically designed to apply sinusoidal
+    torques to joints masked by the `joint_mask` attribute. It overrides default
+    behavior to control joint positions and torques during monitoring and command
+    phases.
 
     Attributes:
-        joint_mask (Sequence[int]): Initialized in the constructor method, but its
-            exact nature or how it is used is unclear from this code snippet alone.
-        freq_hz (float): Initialized with a frequency value that will be used to
-            generate a sine wave for the torque command. It determines the number
-            of cycles per second in the sinusoidal pattern.
-        torque_ampl (float): Initialized with the torque amplitude value provided
-            to its constructor. It stores the maximum torque magnitude applied to
-            joints during oscillation.
-        phi (float): Initialized to zero. It represents a phase angle used for
-            generating sine wave amplitudes in the `command` method.
-        step_width (float): 0 by default. It represents the time increment for
-            updating the torque offset based on the sine wave frequency and sample
-            time.
-        torques (npndarray[float32,ndim1]): 0-indexed with a length equal to
-            `fri.LBRState.NUMBER_OF_JOINTS`, representing a numerical array
-            containing torques applied to each joint.
+        joint_mask (Sequence[int]): Used to specify which joints are subject to
+            the sinusoidal torque command. It appears to be a subset of the robot's
+            total number of joints.
+        freq_hz (float): Initialized with a specific value during object creation,
+            which represents the frequency of the sine wave used to modulate the
+            torques applied to the robot's joints.
+        torque_ampl (float): Initialized by the `__init__` method with the value
+            provided to it as an argument. It represents the amplitude of the sine
+            wave used in torque calculations.
+        phi (float): Initialized to 0. It keeps track of a phase angle used in
+            calculating torque offsets for sine wave-like motion, incremented by
+            `self.step_width` on each call to `command`.
+        step_width (float): 0 by default. It stores the angular step size of a
+            sine wave used to modulate torque amplitudes, calculated as twice the
+            product of frequency and sample time.
+        torques (npndarray[float32,ndim1]): Initialized as a zero-filled array
+            with the size corresponding to the number of joints of the robot. It
+            stores torques values for each joint during the command execution.
 
     """
     def __init__(self, joint_mask, freq_hz, torque_amplitude):
         """
-        Initializes instance variables for joint mask, frequency, torque amplitude,
-        phase angle, step width, and torques array with zeros, setting default
-        values where applicable.
+        Initializes its attributes, including joint mask, frequency, and torque
+        amplitude, and sets default values for phase, step width, and torques. It
+        also calls the parent class's constructor using super().
 
         Args:
-            joint_mask (np.ndarray[bool]): Used to specify which joints are being
-                controlled by the object. It has boolean values indicating whether
-                each joint should be included (True) or not (False).
-            freq_hz (float): Intended to represent a frequency value measured in
-                Hertz. It is used as an input to initialize the object with its
-                specified value.
-            torque_amplitude (float): Assigned to the instance attribute
-                `self.torque_ampl`. It represents an amplitude value related to
-                torque, but its precise purpose is not clearly stated in this code
-                snippet.
+            joint_mask (np.ndarray | List[int]): 1D array or list containing boolean
+                values that determine which joints to consider for torque application.
+            freq_hz (float): Used to represent the frequency in Hertz. It determines
+                the speed or oscillation rate of an oscillatory signal in this context.
+            torque_amplitude (float): Used to specify the amplitude of torque.
+                This value determines the maximum amount of torque that can be
+                applied during motion.
 
         """
         super().__init__()
@@ -65,17 +64,16 @@ class LBRTorqueSineOverlayClient(fri.LBRClient):
 
     def onStateChange(self, old_state, new_state):
         """
-        Updates internal state variables based on changes to the robot's session
-        state. It resets torque values and certain parameters when the session
-        enters a monitoring-ready state.
+        Resets internal state when the robot enters the MONITORING_READY state,
+        setting torque and phi values to zero and recalculating a step width based
+        on frequency and sample time.
 
         Args:
-            old_state (fri.ESessionState): Passed to indicate the state that
-                occurred before the change. It represents the current state of the
-                system or robot session when it transitioned from one state to another.
-            new_state (fri.ESessionState): Compared to a value MONITORING_READY,
-                which suggests it represents an enumeration or state machine that
-                tracks the current session state of a robotic system.
+            old_state (fri.ESessionState | None): The state of the system before
+                the change occurred.
+            new_state (Enum[fri.ESessionState] | Enum[fri.LBRState]): Initialized
+                with a value from fri.ESessionState or fri.LBRState based on whether
+                the state changed is due to monitoring ready event or any other event.
 
         """
         print(f"State changed from {old_state} to {new_state}")
@@ -89,8 +87,8 @@ class LBRTorqueSineOverlayClient(fri.LBRClient):
 
     def waitForCommand(self):
         """
-        Synchronizes joint positions with the robot's current IPO position, then
-        sets the robot's torque to a specified value if it is in Torque mode.
+        Waits for and applies a joint position command to the robot, with or without
+        torque commands depending on the client's mode.
 
         """
         self.robotCommand().setJointPosition(self.robotState().getIpoJointPosition())
@@ -100,9 +98,9 @@ class LBRTorqueSineOverlayClient(fri.LBRClient):
 
     def command(self):
         """
-        Updates the robot's joint position to match its IPO (in-positioning
-        operation) trajectory and applies a torque offset to specific joints based
-        on a sinusoidal pattern, with an adjustable amplitude and phase.
+        Generates torque commands for the robot based on a sine wave pattern, where
+        the amplitude and phase are modulated by user-defined parameters. It sets
+        joint positions and torques accordingly to execute this motion command.
 
         """
         self.robotCommand().setJointPosition(self.robotState().getIpoJointPosition())
@@ -119,35 +117,32 @@ class LBRTorqueSineOverlayClient(fri.LBRClient):
             self.robotCommand().setTorque(self.torques)
 
 
-def get_arguments():
+def args_factory():
     """
-    Parses command line arguments for a KUKA Sunrise Controller program, including
-    hostname, port number, joint to move, and parameters for sine wave generation.
-    It validates input using type conversions and range checks, raising exceptions
-    on invalid values.
+    Parses command-line arguments using argparse, validating and converting input
+    values as necessary. It returns a Namespace object containing the parsed
+    arguments. The function defines type conversion for specific argument types,
+    including joint masks within a range of 0-7.
 
     Returns:
-        argparseNamespace: A container object holding and providing access to the
-        arguments passed in as positional and optional (named) arguments parsed
-        from the command line or other input source.
+        argparseNamespace: An object that has several named attributes (parsed
+        arguments) such as hostname, port, joint_mask, freq_hz and torque_amplitude.
 
     """
     def cvt_joint_mask(value):
         """
-        Converts a given value into an integer that represents a joint mask value
-        within a specified range (0 to 7). It raises an error if the input is
-        outside this range. The conversion is implicit for values already in the
-        valid range.
+        Converts a given value to an integer and checks if it falls within the
+        specified range [0, 7). If valid, it returns the integer; otherwise, it
+        raises an error with a message indicating that the value is out of range.
 
         Args:
-            value (Union[int, str]): Specified as an input to the function when
-                it is called. It may be either an integer or a string representation
-                of an integer that can be converted to an integer.
+            value (Union[int, str] | float): Used to represent a joint mask index.
+                It can be an integer, float or a string that represents a valid
+                integer value for a joint mask in Open3D.
 
         Returns:
-            int|None: The index of a joint mask. If the input value is within the
-            range [0, 7), it returns the integer value. Otherwise, it raises an
-            ArgumentTypeError with a message describing the valid range.
+            int: 1 digit integer from 0 to 6 representing joint mask if input is
+            a valid number in that range, otherwise it raises an error.
 
         """
         int_value = int(value)
@@ -197,19 +192,18 @@ def get_arguments():
 
 def main():
     """
-    Runs a FRI client application, connecting to a KUKA Sunrise controller over a
-    specified port and hostname. It then enters a loop where it steps through the
-    application until the session becomes idle or interrupted by a keyboard interrupt.
+    Initializes and connects to a KUKA Sunrise controller, runs a client application
+    that applies a sine wave torque overlay to a robot, and exits when the robot
+    session state becomes IDLE or upon keyboard interrupt.
 
     Returns:
-        int: 1 if connection to KUKA Sunrise controller fails, and 0 otherwise.
-        The specific return value indicates whether the function executed successfully
-        or encountered an error.
+        int|None: 1 if connection to KUKA Sunrise controller fails or 0 otherwise,
+        indicating successful execution of the application.
 
     """
     print("Running FRI Version:", fri.FRI_CLIENT_VERSION)
 
-    args = get_arguments()
+    args = args_factory()
     client = LBRTorqueSineOverlayClient(
         args.joint_mask, args.freq_hz, args.torque_amplitude
     )
