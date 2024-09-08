@@ -49,7 +49,6 @@ class HandGuideClient(fri.LBRClient):
             )
             raise SystemExit
 
-        self.wrench_estimator.update()
         self.q = self.robotState().getIpoJointPosition()
         self.command_position()
 

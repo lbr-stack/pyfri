@@ -58,7 +58,7 @@ See the [examples](examples/).
 
 4. Setup the hardware, see [Hardware Setup](https://lbr-stack.readthedocs.io/en/latest/lbr_fri_ros2_stack/lbr_fri_ros2_stack/doc/hardware_setup.html).
 
-5. Checkout the [example applications](https://lbr-stack.readthedocs.io/en/latest/pyfri/doc/example_applications.html#example-applications).
+5. Checkout the [Example Applications](https://lbr-stack.readthedocs.io/en/latest/pyfri/doc/example_applications.html#example-applications).
 
 ## Citation
 If you enjoyed using this repository for your work, we would really appreciate ❤️ if you could leave a ⭐ and / or cite it, as it helps us to continue offering support.
