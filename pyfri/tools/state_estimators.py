@@ -1,6 +1,6 @@
 import abc
 import numpy as np
-from pyFRI import LBRState
+from pyfri import LBRState
 from collections import deque
 
 

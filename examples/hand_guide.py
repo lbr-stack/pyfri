@@ -4,9 +4,9 @@ import sys
 import numpy as np
 from admittance import AdmittanceController
 
-import pyFRI as fri
-from pyFRI.tools.filters import ExponentialStateFilter
-from pyFRI.tools.state_estimators import (
+import pyfri as fri
+from pyfri.tools.filters import ExponentialStateFilter
+from pyfri.tools.state_estimators import (
     FRIExternalTorqueEstimator,
     JointStateEstimator,
     WrenchEstimatorTaskOffset,
@@ -49,7 +49,6 @@ class HandGuideClient(fri.LBRClient):
             )
             raise SystemExit
 
-        self.wrench_estimator.update()
         self.q = self.robotState().getIpoJointPosition()
         self.command_position()
 
@@ -73,7 +72,7 @@ class HandGuideClient(fri.LBRClient):
         self.command_position()
 
 
-def get_arguments():
+def args_factory():
     parser = argparse.ArgumentParser(description="LRBJointSineOverlay example.")
     parser.add_argument(
         "--hostname",
@@ -103,7 +102,7 @@ def get_arguments():
 def main():
     print("Running FRI Version:", fri.FRI_CLIENT_VERSION)
 
-    args = get_arguments()
+    args = args_factory()
     client = HandGuideClient(args.lbr_ver)
     app = fri.ClientApplication(client)
     success = app.connect(args.port, args.hostname)

@@ -6,7 +6,7 @@ from collections import OrderedDict
 import pygame
 
 # FRI Client: https://github.com/cmower/FRI-Client-SDK_Python
-import pyFRI as fri
+import pyfri as fri
 
 pygame.init()
 
@@ -129,7 +129,7 @@ class TeleopClient(fri.LBRClient):
             self.robotCommand().setTorque(self.torques.astype(np.float32))
 
 
-def get_arguments():
+def args_factory():
     parser = argparse.ArgumentParser(description="LRBJointSineOverlay example.")
     parser.add_argument(
         "--hostname",
@@ -159,7 +159,7 @@ def get_arguments():
 def main():
     print("Running FRI Version:", fri.FRI_CLIENT_VERSION)
 
-    args = get_arguments()
+    args = args_factory()
     ik = IK(args.lbr_ver)
     keyboard = Keyboard()
     client = TeleopClient(ik, keyboard)

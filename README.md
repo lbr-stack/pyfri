@@ -1,10 +1,12 @@
-# pyFRI
+# pyfri
 
-[![License](https://img.shields.io/github/license/lbr-stack/pyFRI)](https://github.com/lbr-stack/pyFRI/tree/main?tab=Apache-2.0-1-ov-file#readme) 
+[![Build](https://github.com/lbr-stack/pyfri/actions/workflows/build.yaml/badge.svg)](https://github.com/lbr-stack/pyfri/actions/workflows/build.yaml)
+[![License](https://img.shields.io/github/license/lbr-stack/pyfri)](https://github.com/lbr-stack/pyfri/tree/main?tab=Apache-2.0-1-ov-file#readme)
+[![JOSS](https://joss.theoj.org/papers/c43c82bed833c02503dd47f2637192ef/status.svg)](https://joss.theoj.org/papers/c43c82bed833c02503dd47f2637192ef)
 [![Code Style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 KUKA Fast Robot Interface Python SDK.
-The code in this repository, provides Python bindings for the FRI Client SDK C++.
+The code in this repository, provides Python bindings for the FRI Client SDK C++ through [pybind11](https://github.com/pybind/pybind11).
 The interface has been designed to be as similar as possible to the documentation provided by KUKA.
 
 There is one difference users of the Python bindings should be aware.
@@ -24,7 +26,7 @@ ClientApplication app(connection, client);
 In Python, the equivalent code is as follows.
 
 ```python
-import pyFRI as fri
+import pyfri as fri
 
 # ..setup client..
 
@@ -35,32 +37,15 @@ Since UDP is the only supported connection type and the connection object is not
 
 See the [examples](examples/).
 
-# Important notice
-
-**THIS IS NOT A KUKA PRODUCT.**
-
-[@cmower](https://github.com/cmower) and [@mhubii](https://github.com/mhubii) are not affiliated with KUKA.
-
-# Support
-
-The following versions of FRI are currently supported:
-* 1.15
-* 2.5
-
-Note, whilst FRI version 2.5 is supported some functionality is not.
-Currently, FRI Cartesian Overlay is not supported by FRI-Client-SDK_Python.
-
-If you have a different version, please consider [forking](https://github.com/lbr-stack/pyFRI/fork) and [submitting a pull request](https://github.com/lbr-stack/pyFRI/pulls).
-
-# Install
+## Quickstart
 
 1. Clone repository (make sure you include `--recursive`):
    ```shell
-   git clone --recursive https://github.com/lbr-stack/pyFRI.git
+   git clone --recursive https://github.com/lbr-stack/pyfri.git
    ```
 2. Change directory:
    ```shell
-   cd pyFRI
+   cd pyfri
    ```
 3. Install:
    ```shell
@@ -68,66 +53,15 @@ If you have a different version, please consider [forking](https://github.com/lb
    pip3 install .
    ```
 
-## Upgrading/switching between FRI Versions
+> [!NOTE]
+> FRI client is fetched from [fri](https://github.com/lbr-stack/fri) and must be available as branch, refer [README](https://github.com/lbr-stack/fri?tab=readme-ov-file#contributing).
 
-If you upgrade your FRI version or want to switch between them, you need to manually remove the `build/` directory before running `pip install`.
+4. Setup the hardware, see [Hardware Setup](https://lbr-stack.readthedocs.io/en/latest/lbr_fri_ros2_stack/lbr_fri_ros2_stack/doc/hardware_setup.html).
 
-# Usage
+5. Checkout the [Example Applications](https://lbr-stack.readthedocs.io/en/latest/pyfri/doc/example_applications.html#example-applications).
 
-## Data types
-
-You can pass NumPy arrays to the "set" methods (e.g. `setJointPosition`) in order to command the robot.
-However, you **must** ensure the format of the array is correct.
-
-Arrays that have a `dtype` of `np.float32` are the only ones that can be accepted.
-See how the commands are set in the the examples.
-
-## Collecting data from the robot
-
-We provide additional functionality to the LBR client application class that enables data collection to a text file.
-In Python, simply add the following
-
-```python
-app = fri.ClientApplication(client)
-app.collect_data(file_name)
-```
-
-The string `file_name` should contain the file name for the data file.
-We use the comma-separated values format for the data file, and so the file name should end with the extension `.csv` - *note*, if this isn't the case then `.csv` is automatically appended to the given file name.
-
-The columns in the recorded csv file are as follows:
-* `index`: the index of the recorded data, starts at 0, and is incremented by 1 at each call to the `step` method.
-* `time`: the time of the command, starts at 0.0, then is incremented by the sample time at each call to the `step` method.
-* `record_time_nsec`: the epoch time collected when the data in the current time step is recorded.
-* `tsec`: controller time as specified by the FRI in seconds. See FRI documentation for `getTimestampSec`.
-* `tnsec`: controller time as specified by the FRI in nanoseconds. See FRI documentation for `getTimestampNanoSec`.
-* `mp1, ..., mp7`: The measured joint position for the robot.
-* `ip1, ..., ip7`: The ipo joint position for the robot.
-* `mt1, ..., mt7`: The measured torque for the robot.
-* `et1, ..., et7`: The external torque for the robot.
-* `dt`: The sample time specified on the KUKA controller.
-
-See the [examples/LBRJointSineOverlay.py](examples/LBRJointSineOverlay.py) example that demonstrates how to easily collect data from the robot.
-
-# Examples
-
-First, ensure the corresponding Java applications for each example are installed (these were supplied with KUKA Sunrise).
-Then turn on the robot, connect your laptop via ethernet, and follow these steps on your laptop.
-
-1. Change directory: `cd /path/to/FRI-Client-SDK_Python/examples`
-2. Run examples
-   - `$ python LBRJointSineOverlay.py # based on examples provided by KUKA`
-   - `$ python LBRTorqueSineOverlay.py # based on examples provided by KUKA`
-   - `$ python LBRWrenchSineOverlay.py # based on examples provided by KUKA`
-   - `$ python joint_teleop.py`
-   - `$ python task_teleop.py`
-
-# Documentation
-
-You can find documentation for `pyFRI` in the [wiki](https://github.com/cmower/FRI-Client-SDK_Python/wiki).
-
-# Citation
-If you enjoyed using this repository for your work, we would really appreciate ❤️ if you could cite it, as it helps us to continue offering support.
+## Citation
+If you enjoyed using this repository for your work, we would really appreciate ❤️ if you could leave a ⭐ and / or cite it, as it helps us to continue offering support.
 
 ```
 @misc{huber2023lbrstack,

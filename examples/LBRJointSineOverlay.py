@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-import pyFRI as fri
+import pyfri as fri
 
 
 class LBRJointSineOverlayClient(fri.LBRClient):
@@ -50,7 +50,7 @@ class LBRJointSineOverlayClient(fri.LBRClient):
         self.robotCommand().setJointPosition(joint_pos.astype(np.float32))
 
 
-def get_arguments():
+def args_factory():
     def cvt_joint_mask(value):
         int_value = int(value)
         if 0 <= int_value < 7:
@@ -114,7 +114,7 @@ def get_arguments():
 def main():
     print("Running FRI Version:", fri.FRI_CLIENT_VERSION)
 
-    args = get_arguments()
+    args = args_factory()
     client = LBRJointSineOverlayClient(
         args.joint_mask, args.freq_hz, args.ampl_rad, args.filter_coeff
     )

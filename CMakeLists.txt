@@ -5,7 +5,7 @@
 
 cmake_minimum_required(VERSION 3.16.3)
 
-project(_pyFRI)
+project(_pyfri)
 
 include(FetchContent)
 
@@ -27,12 +27,12 @@ FetchContent_MakeAvailable(FRI)
 
 add_subdirectory(pybind)
 
-pybind11_add_module(_pyFRI ${CMAKE_CURRENT_SOURCE_DIR}/pyFRI/src/wrapper.cpp)
+pybind11_add_module(_pyfri ${CMAKE_CURRENT_SOURCE_DIR}/pyfri/src/wrapper.cpp)
 
 target_include_directories(
-    _pyFRI
+    _pyfri
     PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/pyFRI/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/pyfri/src
 )
 
-target_link_libraries(_pyFRI PRIVATE FRIClient)
+target_link_libraries(_pyfri PRIVATE FRIClient)

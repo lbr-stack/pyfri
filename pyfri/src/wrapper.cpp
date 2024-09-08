@@ -199,7 +199,7 @@ private:
 // Python bindings
 namespace py = pybind11;
 
-PYBIND11_MODULE(_pyFRI, m) {
+PYBIND11_MODULE(_pyfri, m) {
   m.doc() = "Python bindings for the KUKA FRI Client SDK. THIS IS NOT A KUKA "
             "PRODUCT.";
 
