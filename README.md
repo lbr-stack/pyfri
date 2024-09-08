@@ -37,7 +37,7 @@ Since UDP is the only supported connection type and the connection object is not
 
 See the [examples](examples/).
 
-# Quickstart
+## Quickstart
 
 1. Clone repository (make sure you include `--recursive`):
    ```shell
@@ -56,13 +56,11 @@ See the [examples](examples/).
 > [!NOTE]
 > FRI client is fetched from [fri](https://github.com/lbr-stack/fri) and must be available as branch, refer [README](https://github.com/lbr-stack/fri?tab=readme-ov-file#contributing).
 
-# Important notice
+4. Setup the hardware, see [Hardware Setup](https://lbr-stack.readthedocs.io/en/latest/lbr_fri_ros2_stack/lbr_fri_ros2_stack/doc/hardware_setup.html).
 
-**THIS IS NOT A KUKA PRODUCT.**
+5. Checkout the [example applications](https://lbr-stack.readthedocs.io/en/latest/pyfri/doc/example_applications.html#example-applications).
 
-[@cmower](https://github.com/cmower) and [@mhubii](https://github.com/mhubii) are not affiliated with KUKA.
-
-# Citation
+## Citation
 If you enjoyed using this repository for your work, we would really appreciate ❤️ if you could leave a ⭐ and / or cite it, as it helps us to continue offering support.
 
 ```

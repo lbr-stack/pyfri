@@ -1,6 +1,8 @@
-pyfri
-=====
+.. include:: ../README.md
+   :parser: myst_parser.sphinx_
 
-.. ## Upgrading/switching between FRI Versions
+.. toctree::
+   :hidden:
 
-.. If you upgrade your FRI version or want to switch between them, you need to manually remove the `build/` directory before running `pip install`.
+   software_architecture
+   example_applications
