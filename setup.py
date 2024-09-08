@@ -10,6 +10,13 @@ from setuptools.command.build_ext import build_ext
 
 # Read the configuration settings
 class UserInputRequired(Exception):
+    """
+    Defines a custom exception that signals the need for user input to proceed
+    with a particular operation or action. It serves as a signal to handle missing
+    or invalid user data, ensuring program flow continues after receiving required
+    input from users.
+
+    """
     def __init__(self, msg):
         super().__init__(msg)
 
@@ -33,13 +40,56 @@ PLAT_TO_CMAKE = {
 # The name must be the _single_ output extension from the CMake build.
 # If you need multiple extensions, see scikit-build.
 class CMakeExtension(Extension):
+    """
+    Initializes a CMake extension project with given name and source directory
+    path. It sets up the basic structure for a CMake build, allowing sources to
+    be added later. The `sourcedir` parameter is resolved to an absolute file
+    system path.
+
+    Attributes:
+        sourcedir (osPathLike[str]|str): Set to a normalized path string. It stores
+            the source directory for the extension. This value can be obtained
+            from a Path object, which provides file system operations.
+
+    """
     def __init__(self, name: str, sourcedir: str = "") -> None:
+        """
+        Initializes an instance with a specified name and optionally a sourcedir
+        path. The `super().__init__` call creates a base Extension instance with
+        the given name, while also initializing a sources list. The sourcedir path
+        is resolved and stored in self.sourcedir.
+
+        Args:
+            name (str): Required for initialization. It represents the name of an
+                object being created and will be used as its identifier.
+            sourcedir (str): Optional, as indicated by its default value. It
+                represents the source directory path that can be resolved to an
+                absolute path using os.fspath and Path.resolve.
+
+        """
         super().__init__(name, sources=[])
         self.sourcedir = os.fspath(Path(sourcedir).resolve())
 
 
 class CMakeBuild(build_ext):
+    """
+    Extends the `build_ext` class from Python's `setuptools` package to provide
+    custom CMake-based build logic for extension modules. It generates and builds
+    CMake project files, incorporating environment variables and project-specific
+    settings.
+
+    """
     def build_extension(self, ext: CMakeExtension) -> None:
+        """
+        Builds and configures a CMake-based extension using specified environment
+        variables, compiler types, and configuration settings to generate native
+        libraries for various platforms and architectures.
+
+        Args:
+            ext (CMakeExtension): Expected to be a specific extension that needs
+                to be built.
+
+        """
         # Must be in this form due to bug in .resolve() only fixed in Python 3.10+
         ext_fullpath = Path.cwd() / self.get_ext_fullpath(ext.name)
         extdir = ext_fullpath.parent.resolve()
