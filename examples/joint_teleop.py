@@ -3,6 +3,7 @@ import sys
 
 # FRI Client: https://github.com/cmower/FRI-Client-SDK_Python
 import pyfri as fri
+
 # PyGame: https://www.pygame.org/news
 import pygame
 
